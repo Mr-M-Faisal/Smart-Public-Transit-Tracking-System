@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { ArrowRight, Clock3, MapPin, Navigation, Users, X } from "lucide-react";
 import { Badge } from "../common/Badge";
 import { Button } from "../common/Button";

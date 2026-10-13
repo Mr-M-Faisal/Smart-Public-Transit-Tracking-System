@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "../common/SmartLink";
+import { DataSaverControl } from "../common/DataSaverControl";
 import { usePathname, useRouter } from "next/navigation";
 import { BusFront, Bell, ChartNoAxesCombined, History, House, LogOut, MapPinned, MoreHorizontal, Route, Settings, Ticket, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,7 +10,8 @@ import { clearAccessToken, getAccessToken } from "../../lib/auth/token";
 import { getCachedProfile, getProfile, getRoleHome } from "../../services/authService";
 import { clearPrivateSnapshots } from "../../lib/live-map/liveMapStorage";
 import { alertService } from "../../services/alertService";
-import { routeService } from "../../services/routeService";
+import { ProfileContext } from "../../hooks/useProfileContext";
+import { PageSkeleton } from "../common/SectionSkeleton";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { BrandMark } from "../common/BrandMark";
 import { PwaInstallAction } from "../pwa/PwaInstallAction";
@@ -168,25 +170,20 @@ export function AppExperience({ children }) {
   }, [userId]);
 
   const loadNotifications = useCallback(async () => {
-    if (notificationRequestRef.current) return;
-    notificationRequestRef.current = true;
+    if (!token || notificationRequestRef.current === token) return;
+    notificationRequestRef.current = token;
     setNotifications((current) => ({ ...current, status: "loading" }));
     try {
-      const result = await routeService.list();
-      const routes = Array.isArray(result) ? result : result.routes || [];
-      const alertResults = await Promise.allSettled(routes.map((route) => alertService.listByRoute(route._id)));
-      const items = alertResults.flatMap((result, index) => result.status === "fulfilled" && Array.isArray(result.value)
-        ? result.value.map((alert) => ({ ...alert, routeName: routes[index].routeName }))
-        : []);
-      items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      const items = await alertService.listActive();
+      if (getAccessToken() !== token) return;
       if (notificationsOpenRef.current) persistSeenAlerts(items);
-      setNotifications({ status: alertResults.some((result) => result.status === "rejected") && !items.length ? "error" : "ready", items });
+      setNotifications({ status: "ready", items });
     } catch {
-      setNotifications({ status: "error", items: [] });
+      if (getAccessToken() === token) setNotifications({ status: "error", items: [] });
     } finally {
-      notificationRequestRef.current = false;
+      if (notificationRequestRef.current === token) notificationRequestRef.current = false;
     }
-  }, [persistSeenAlerts]);
+  }, [persistSeenAlerts, token]);
 
 
 
@@ -244,9 +241,9 @@ export function AppExperience({ children }) {
   if (!token || pathname.startsWith("/safety/track/")) return children;
   if (error === "load") return <div className="app-auth-state"><p>Unable to verify your account. Check your connection and try again.</p><button type="button" onClick={() => setRetry(n => n + 1)}>Try again</button></div>;
   if (error === "auth") return <div className="app-auth-state"><p>Your session has expired.</p><Link href="/login">Sign in</Link></div>;
-  if (!user) return <div className="app-auth-state" ><LoadingSpinner /></div>;
+  if (!user) return <PendingAccountShell />;
   if (!allowed(pathname, user.role)) return <div className="app-auth-state"><p>You don&apos;t have permission to access this page.</p><Link href={getRoleHome(user.role)}>Go to your dashboard</Link></div>;
-  if (authPage || (pathname === "/" && user.role !== "commuter")) return <div className="app-auth-state" ><LoadingSpinner /></div>;
+  if (authPage || (pathname === "/" && user.role !== "commuter")) return <PendingAccountShell />;
 
   const role = user.role;
   const items = role === "admin" ? admin : role === "driver" ? driver : commuter;
@@ -314,14 +311,18 @@ export function AppExperience({ children }) {
           </div>
           <div className="app-account" ref={accountRef}>
             <button type="button" className="app-avatar" aria-label="Open profile menu" aria-expanded={accountOpen} onClick={() => { setAccountOpen((open) => !open); closeNotifications(); }}>{initials}</button>
-            {accountOpen && <div className="app-account-menu" role="menu"><div className="app-account-summary"><strong>{user.name}</strong><span>{user.email}</span></div><Link href="/profile" role="menuitem" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setConfirmLogout(true); }}><LogOut size={17} /> Log out</button></div>}
+            {accountOpen && <div className="app-account-menu" role="menu"><DataSaverControl /><div className="app-account-summary"><strong>{user.name}</strong><span>{user.email}</span></div><Link href="/profile" role="menuitem" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setConfirmLogout(true); }}><LogOut size={17} /> Log out</button></div>}
           </div>
         </div>
       </div>
     </header>
-    <div className="app-frame"><aside className="app-sidebar"><Navigation items={items} pathname={pathname} activeHash={activeHash} onNavigate={navigate} /></aside><div className="app-content">{children}</div></div>
+    <div className="app-frame"><aside className="app-sidebar"><Navigation items={items} pathname={pathname} activeHash={activeHash} onNavigate={navigate} /></aside><div className="app-content"><ProfileContext.Provider value={{ token, user }}>{children}</ProfileContext.Provider></div></div>
     <Navigation items={mobileItems} pathname={pathname} activeHash={activeHash} onNavigate={(event, href) => { setDriverMoreOpen(false); navigate(event, href); }} onMore={(event) => { driverMoreTriggerRef.current = event.currentTarget; setDriverMoreOpen((open) => !open); }} moreOpen={driverMoreOpen} mobile />
     {role === "driver" && driverMoreOpen && <section ref={driverMoreRef} className="app-driver-more-menu" aria-label="More driver tools"><Link href="/driver/route" onClick={() => setDriverMoreOpen(false)}><MapPinned size={18} /> Route</Link><Link href="/reports" onClick={() => setDriverMoreOpen(false)}><ChartNoAxesCombined size={18} /> Reports</Link><Link href="/profile" onClick={() => setDriverMoreOpen(false)}><UserRound size={18} /> Profile</Link><button type="button" onClick={() => { setDriverMoreOpen(false); setConfirmLogout(true); }}><LogOut size={18} /> Sign out</button></section>}
     {confirmLogout && <div className="app-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmLogout(false); }}><section className="app-logout-dialog" role="alertdialog" aria-modal="true" aria-labelledby="logout-title"><button type="button" className="app-dialog-close" aria-label="Close" onClick={() => setConfirmLogout(false)}><X size={18} /></button><span className="app-dialog-icon"><LogOut size={22} /></span><h2 id="logout-title">Log out?</h2><p>Are you sure you want to log out?</p><div><button type="button" onClick={() => setConfirmLogout(false)}>Cancel</button><button type="button" className="is-danger" onClick={logout}>Log out</button></div></section></div>}
   </div>;
+}
+
+function PendingAccountShell() {
+  return <div className="app-experience"><header className="app-header"><div className="app-header-inner"><Link href="/" className="app-brand"><BrandMark size={34} /><strong>Smart Safar</strong></Link><nav aria-label="Transit navigation" className="flex gap-4"><Link href="/routes">Routes</Link><Link href="/live-map">Live Map</Link></nav></div></header><PageSkeleton title="Preparing your workspace" variant="stats" /></div>;
 }

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { Card } from "../common/Card";
 
 export function DriverRouteCard({ route, stops, nextStopId, errors }) {

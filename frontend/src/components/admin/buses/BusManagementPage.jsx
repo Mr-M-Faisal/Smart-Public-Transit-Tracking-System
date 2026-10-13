@@ -1,7 +1,7 @@
 "use client";
 
 
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BusFront, ArrowLeft, CheckCircle2, Clock, Filter, Plus, RefreshCw, Wrench } from "lucide-react";
 import { Navbar } from "../../navigation/Navbar";

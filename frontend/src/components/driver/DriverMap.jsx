@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import { ClientTransitMap } from "../map/MapShell";
-import { BusMarker } from "../map/BusMarker";
-import { PassengerMarker } from "../map/PassengerMarker";
-import { StopMarker } from "../map/StopMarker";
-import { RoutePolyline } from "../map/RoutePolyline";
-import { MapControls } from "../map/MapControls";
-import { MapViewport } from "../map/MapViewport";
+import { BusMarker } from "../map/MapShell";
+import { PassengerMarker } from "../map/MapShell";
+import { StopMarker } from "../map/MapShell";
+import { RoutePolyline } from "../map/MapShell";
+import { MapControls } from "../map/MapShell";
+import { MapViewport } from "../map/MapShell";
 import { getBusPosition } from "../../lib/transit/format";
 import { isValidPosition } from "../../lib/transit/coordinates";
 

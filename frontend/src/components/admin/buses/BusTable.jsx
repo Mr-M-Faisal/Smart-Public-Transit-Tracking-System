@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { Edit3, Trash2, User } from "lucide-react";
 import { Badge } from "../../common/Badge";
 import { Button } from "../../common/Button";

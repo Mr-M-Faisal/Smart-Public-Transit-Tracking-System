@@ -1,8 +1,5 @@
-// Keep the existing interface: callers continue to control when loading ends.
+import { SectionSkeleton } from "./SectionSkeleton";
+// Retain the existing interface for local loading states, without a spinner.
 export function LoadingSpinner({ label = "Loading", className = "" }) {
-  return (
-    <span className={`safar-loader ${className}`} role="status" aria-live="polite">
-      {label}
-    </span>
-  );
+  return <SectionSkeleton label={label} variant="rows" count={1} className={className} />;
 }

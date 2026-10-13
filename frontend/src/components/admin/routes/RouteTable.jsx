@@ -1,7 +1,7 @@
 "use client";
 
 
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { BusFront, ArrowUpRight, Edit3, Eye, MapPin, Trash2 } from "lucide-react";
 import { Badge } from "../../common/Badge";
 import { Card } from "../../common/Card";

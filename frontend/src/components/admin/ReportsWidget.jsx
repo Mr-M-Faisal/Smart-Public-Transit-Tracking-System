@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "../common/SmartLink";
 import { useState } from "react";
 import { AlertOctagon, AlertTriangle, CheckCircle, Clock, ShieldAlert, Wrench } from "lucide-react";
 import { Badge } from "../common/Badge";
@@ -50,7 +51,7 @@ export function ReportsWidget({ reports = [], reportsSummary, loading }) {
             </h2>
           </div>
           <p className="mt-0.5 text-xs text-[var(--muted)]">
-            Commuter and staff feedback on vehicle condition & passenger safety
+            Latest 20 reports. Filters apply to this recent list.
           </p>
         </div>
 
@@ -68,6 +69,7 @@ export function ReportsWidget({ reports = [], reportsSummary, loading }) {
         </div>
       </div>
 
+      <Link href="/admin/reports" className="mt-3 inline-block text-sm underline">View all reports</Link>
       {/* Filter Tabs */}
       <div className="mt-4 flex flex-wrap gap-2 border-b border-[var(--border)] pb-2 text-xs">
         {["all", "open", "reviewed", "resolved"].map((tab) => (

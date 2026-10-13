@@ -156,10 +156,11 @@ const getBuses = async (req, res) => {
     if (req.query.route) filter.route = req.query.route;
 
     const buses = await Bus.find(filter)
+      .select('-seatMap -recentSpeeds')
       .populate('route', 'routeName')
-      .populate('driver', 'name phone');
+      .populate('driver', 'name phone').lean();
 
-    res.status(200).json(buses.map(publicBus));
+    res.status(200).json(buses);
   } catch (err) {
     res.status(500).json({ message: 'Server error fetching buses', error: err.message });
   }

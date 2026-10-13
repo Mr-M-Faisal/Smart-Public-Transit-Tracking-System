@@ -13,6 +13,7 @@ const { getDrivers, createDriver, updateDriver, deleteDriver } = require('../con
 // Every route here is admin-only — this whole file is the dashboard's data layer
 router.use(protect, authorize('admin'));
 
+router.get('/dashboard', require('../controllers/dashboardController').getDashboard);
 router.get('/overview', getFleetOverview);
 router.get('/analytics/bookings', getBookingsAnalytics);
 router.get('/analytics/occupancy', getOccupancyByRoute);

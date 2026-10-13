@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { AdminDialog } from "../AdminDialog";
 import { Button } from "../../common/Button";
 import { LoadingSpinner } from "../../common/LoadingSpinner";

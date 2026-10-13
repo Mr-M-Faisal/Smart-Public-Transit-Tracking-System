@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const Stop = require('../models/Stop');
+const Route = require('../models/Route');
 const RouteStop = require('../models/RouteStop');
 const {
   cleanText,
   findOrCreatePhysicalStop,
   getStopsForRoute,
+  getStopsForRoutes,
   publicRouteStop,
   stopIdentity,
 } = require('../services/routeStopService');
@@ -136,4 +138,15 @@ const deleteStop = async (req, res) => {
   }
 };
 
-module.exports = { createStop, getStopsByRoute, getStopById, updateStop, deleteStop };
+async function getGroupedStops(req, res) {
+  res.set('Cache-Control', 'private, no-store');
+  try {
+    const routes = await Route.find({ isActive: true }).select('routeName startPoint endPoint').sort({ createdAt: -1 }).lean();
+    const stops = await getStopsForRoutes(routes.map((route) => route._id));
+    const grouped = new Map(routes.map((route) => [String(route._id), { route, stops: [] }]));
+    for (const stop of stops) grouped.get(String(stop.route))?.stops.push(stop);
+    res.json([...grouped.values()]);
+  } catch { res.status(500).json({ message: 'Unable to load route stops.' }); }
+}
+
+module.exports = { getGroupedStops, createStop, getStopsByRoute, getStopById, updateStop, deleteStop };

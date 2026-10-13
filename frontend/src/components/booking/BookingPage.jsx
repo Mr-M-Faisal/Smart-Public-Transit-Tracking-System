@@ -1,7 +1,7 @@
 "use client";
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -16,8 +16,9 @@ import { Button } from "../common/Button";
 import { Card } from "../common/Card";
 import { CardBackdrop } from "../common/CardBackdrop";
 import { ErrorState } from "../common/ErrorState";
-import { busService } from "../../services/busService";
-import { routeService } from "../../services/routeService";
+import { useTransitQuery } from "../../hooks/useTransitQuery";
+import { transitQueries } from "../../lib/query/transitQueries";
+import { CacheStatus, useOnline } from "../common/CacheStatus";
 import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/auth/token";
 import { BookingProgress } from "./BookingProgress";
@@ -58,10 +59,13 @@ function sortEligibleBuses(left, right) {
 export default function BookingPage({ initialBusId = "", initialRouteId = "" }) {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [routes, setRoutes] = useState([]);
-  const [buses, setBuses] = useState([]);
-  const [routesLoading, setRoutesLoading] = useState(true);
-  const [loadError, setLoadError] = useState(null);
+  const routesQuery = useTransitQuery(transitQueries.routes());
+  const busesQuery = useTransitQuery({ ...transitQueries.buses(), staleTime: 0 });
+  const online = useOnline();
+  const routes = routesQuery.data || [];
+  const buses = online && !busesQuery.isError ? busesQuery.data || [] : [];
+  const routesLoading = routesQuery.loading;
+  const loadError = routesQuery.isError && !routesQuery.data ? "Routes unavailable. Please reconnect and retry." : null;
   const [submitError, setSubmitError] = useState("");
   const [manualSelection, setManualSelection] = useState(Boolean(initialBusId));
 
@@ -83,9 +87,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
   const selectedBusId = useWatch({ control, name: "bus" });
   const selectedRoute = routes.find((route) => route._id === selectedRouteId);
 
-  const eligibleBuses = useMemo(
-    () =>
-      buses
+  const eligibleBuses = buses
         .filter(
           (bus) =>
             getRouteId(bus) === selectedRouteId &&
@@ -93,9 +95,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
             Number(bus.availableSeats) > 0 &&
             Boolean(getDriverId(bus)),
         )
-        .sort(sortEligibleBuses),
-    [buses, selectedRouteId],
-  );
+        .sort(sortEligibleBuses);
 
   const automaticBus = eligibleBuses[0] || null;
   const selectedBus = eligibleBuses.find((bus) => bus._id === selectedBusId) || null;
@@ -103,40 +103,12 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
   const noEligibleBus = Boolean(selectedRouteId) && !bookingBus;
 
   useEffect(() => {
-    let cancelled = false;
-    Promise.resolve().then(async () => {
-      try {
-        const [routeResponse, busResponse] = await Promise.all([
-          routeService.list(),
-          busService.list(),
-        ]);
-        const routeList = Array.isArray(routeResponse) ? routeResponse : routeResponse.routes || [];
-        const busList = Array.isArray(busResponse) ? busResponse : busResponse.buses || [];
-        if (cancelled) return;
-
-        setRoutes(routeList);
-        setBuses(busList);
-
-        if (initialBusId) {
-          const initialBus = busList.find((bus) => bus._id === initialBusId);
-          const routeId = getRouteId(initialBus);
-          if (routeId) setValue("route", routeId);
-          setValue("bus", initialBusId);
-          setManualSelection(true);
-        } else if (initialRouteId && routeList.some((route) => route._id === initialRouteId)) {
-          setValue("route", initialRouteId);
-        }
-      } catch (error) {
-        console.error("Unable to load booking options", error);
-        if (!cancelled) setLoadError("Unable to load routes");
-      } finally {
-        if (!cancelled) setRoutesLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [initialBusId, initialRouteId, setValue]);
+    if (!initialBusId || !busesQuery.data) return;
+    const initialBus = busesQuery.data.find((bus) => bus._id === initialBusId);
+    const routeId = getRouteId(initialBus);
+    if (routeId) setValue("route", routeId);
+    setValue("bus", initialBusId);
+  }, [initialBusId, busesQuery.data, setValue]);
 
   function handleRouteChange(event) {
     setValue("route", event.target.value, { shouldValidate: true });
@@ -153,6 +125,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
 
   function continueToSeatSelection(values) {
     setSubmitError("");
+    if (!online) { setSubmitError("Reconnect before choosing a live bus and seat."); return; }
     if (!bookingBus) {
       setSubmitError(
         "No active bus is available for this route right now.",
@@ -177,7 +150,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[var(--background)]">
-      <Navbar />
+      <Navbar /><CacheStatus query={routesQuery} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <header className="premium-card premium-card--primary premium-card--imagery p-5 sm:p-7">
           <CardBackdrop visual="booking" priority />

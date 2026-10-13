@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Navbar } from "../navigation/Navbar";
@@ -11,7 +11,7 @@ import { Card } from "../common/Card";
 import { CardBackdrop } from "../common/CardBackdrop";
 import { EmptyState } from "../common/EmptyState";
 import { ErrorState } from "../common/ErrorState";
-import { LoadingSpinner } from "../common/LoadingSpinner";
+import { SectionSkeleton } from "../common/SectionSkeleton";
 import { ProtectedPage } from "../common/ProtectedPage";
 import { DriverMap } from "./DriverMap";
 import { DriverPassengerPanel } from "./DriverPassengerPanel";
@@ -414,7 +414,7 @@ function DriverOperations({ user, view }) {
         <div className="relative z-10">{retry}</div>
       </header>
       {bus && !error && view === "shift" && <DriverStatusCard bus={bus} route={route} eta={eta} errors={errors} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} shiftBusy={shiftBusy} shiftError={shiftError} hasRouteAssignment={hasRouteAssignment} gpsStatus={gpsStatus} onShift={shiftActive ? endShift : startShift} returnBusy={returnBusy} returnError={returnError} onReturn={startReturnTrip} />}
-      {loading && !bus ? <div className="grid min-h-80 place-items-center"><LoadingSpinner label="Loading assigned bus, route, ETA and alerts..." /></div> : error ? <div className="mt-6"><ErrorState title="Driver information unavailable" description={error} action={retry} /></div> : !bus ? <div className="mt-6"><EmptyState title="No Bus Assigned" description="Please contact the administrator to get a bus assigned before starting a shift." /></div> : (
+      {loading && !bus ? <SectionSkeleton className="mt-6" variant={view === "tracking" ? "map" : "cards"} label="Loading assigned bus and shift information" /> : error ? <div className="mt-6"><ErrorState title="Driver information unavailable" description={error} action={retry} /></div> : !bus ? <div className="mt-6"><EmptyState title="No Bus Assigned" description="Please contact the administrator to get a bus assigned before starting a shift." /></div> : (
         <>
           {view === "overview" && <><DriverOverview bus={bus} route={route} shiftActive={shiftActive} directionLabel={directionLabel} /><section className="driver-overview-actions mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Driver tools">
             <Link href="/driver/shift"><strong>Shift</strong><span>Start or end your shift</span></Link>

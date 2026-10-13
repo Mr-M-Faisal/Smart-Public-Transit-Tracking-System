@@ -1,3 +1,5 @@
+"use client";
+import { useDataSaver } from "../../hooks/useDataSaver";
 import Image from "next/image";
 
 const visuals = {
@@ -12,6 +14,8 @@ const visuals = {
 };
 
 export function CardBackdrop({ visual = "transit", priority = false }) {
+  const { enabled } = useDataSaver();
+  if (enabled) return null;
   const artwork = visuals[visual];
   if (!artwork) return <div className={`card-backdrop card-backdrop--pattern card-backdrop--${visual}`} aria-hidden="true" />;
   return <div className={`card-backdrop card-backdrop--photo card-backdrop--${visual}`} aria-hidden="true">

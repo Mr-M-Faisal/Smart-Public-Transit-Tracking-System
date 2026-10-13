@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Edit3, X } from "lucide-react";
 import { Button } from "../../common/Button";
+import { AdminDialog } from "../AdminDialog";
+import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { busService } from "../../../services/busService";
 
 function layoutFromMap(seatMap = []) {
@@ -16,7 +18,27 @@ function layoutFromMap(seatMap = []) {
 }
 const VALID_STATUSES = ["active", "idle", "maintenance"];
 
-export function EditBusModal({ isOpen, onClose, onUpdated, bus, routes = [] }) {
+export function EditBusModal(props) {
+  const busId = props.bus?._id;
+  const [detail, setDetail] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (!props.isOpen || !busId) return undefined;
+    let active = true;
+    busService.get(busId).then((data) => {
+      if (active) { setDetail(data); setFailed(false); }
+    }).catch(() => { if (active) setFailed(true); });
+    return () => { active = false; };
+  }, [busId, props.isOpen, retry]);
+  if (!props.isOpen || !busId) return null;
+  if (detail?._id === busId) return <EditBusForm {...props} bus={detail} />;
+  return <AdminDialog id="edit-bus-loading" title="Edit bus" onClose={props.onClose}>
+    {failed ? <div role="alert" className="mt-4"><p>Unable to load the bus seat layout.</p><Button onClick={() => { setFailed(false); setRetry((value) => value + 1); }}>Retry</Button></div> : <LoadingSpinner label="Loading bus details..." />}
+  </AdminDialog>;
+}
+
+function EditBusForm({ isOpen, onClose, onUpdated, bus, routes = [] }) {
   const [busNumber, setBusNumber] = useState(bus?.busNumber || "");
   const [routeId, setRouteId] = useState(bus?.route?._id || bus?.route || "");
   const [capacity, setCapacity] = useState(bus?.capacity ?? "");

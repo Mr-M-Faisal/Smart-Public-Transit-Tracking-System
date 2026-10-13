@@ -4,6 +4,7 @@ import { getAccessToken, clearAccessToken } from "../auth/token";
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -23,8 +24,17 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) clearAccessToken();
+    const config = error.config;
+    const transient = !error.response || [502, 503, 504].includes(error.response.status);
+    if (config?.method?.toLowerCase() === "get" && !config._retried && transient
+      && !["ERR_CANCELED", "ERR_OFFLINE", "ERR_AUTH_REQUIRED"].includes(error.code)
+      && !config.signal?.aborted && (typeof navigator === "undefined" || navigator.onLine)) {
+      config._retried = true;
+      await new Promise((resolve) => setTimeout(resolve, 500 + Math.random() * 250));
+      return api(config);
+    }
     return Promise.reject(error);
   },
 );

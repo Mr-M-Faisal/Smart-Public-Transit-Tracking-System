@@ -1,5 +1,5 @@
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { BusFront, ArrowRight, X } from "lucide-react";
 import { Card } from "../common/Card";
 

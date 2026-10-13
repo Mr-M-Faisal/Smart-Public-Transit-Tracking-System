@@ -1,4 +1,5 @@
 const RouteAlert = require('../models/RouteAlert');
+const Route = require('../models/Route');
 
 // @route   POST /api/route-alerts
 const createRouteAlert = async (req, res) => {
@@ -44,4 +45,16 @@ const deleteRouteAlert = async (req, res) => {
   }
 };
 
-module.exports = { createRouteAlert, getAlertsByRoute, deleteRouteAlert };
+// Same active-route scope and expiry semantics as the previous notification fan-out.
+async function getActiveAlerts(req, res) {
+  res.set('Cache-Control', 'private, no-store');
+  try {
+    const routes = await Route.find({ isActive: true }).select('routeName').lean();
+    const names = new Map(routes.map((route) => [String(route._id), route.routeName]));
+    const alerts = await RouteAlert.find({ route: { $in: routes.map((route) => route._id) }, $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }] })
+      .select('route message expiresAt createdAt').sort({ createdAt: -1, _id: -1 }).lean();
+    res.json(alerts.map((alert) => ({ ...alert, routeName: names.get(String(alert.route)) })));
+  } catch { res.status(500).json({ message: 'Unable to load active alerts.' }); }
+}
+
+module.exports = { getActiveAlerts, createRouteAlert, getAlertsByRoute, deleteRouteAlert };

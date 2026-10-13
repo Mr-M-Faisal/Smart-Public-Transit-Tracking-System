@@ -1,7 +1,7 @@
 "use client";
 
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { usePathname } from "next/navigation";
 import { BusFront, ArrowRight, House, Route, Settings, UserRound } from "lucide-react";
 import { BrandMark } from "../common/BrandMark";

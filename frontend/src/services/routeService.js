@@ -1,32 +1,13 @@
 import api from "../lib/api/axios";
 import { API_PATHS } from "../config/api";
-
-let routesCache = null;
-let routesRequest = null;
-
-function clearRoutesCache() {
-  routesCache = null;
-  routesRequest = null;
-}
-
-function listRoutes(params) {
-  // Filtered route requests stay fresh. The unfiltered catalogue is shared by
-  // Home, Maps, Booking and admin views during the current browser session.
-  if (params && Object.keys(params).length) return api.get(API_PATHS.routes, { params }).then(({ data }) => data);
-  if (routesCache) return Promise.resolve(routesCache);
-  if (routesRequest) return routesRequest;
-  routesRequest = api.get(API_PATHS.routes).then(({ data }) => {
-    routesCache = data;
-    return data;
-  }).finally(() => { routesRequest = null; });
-  return routesRequest;
-}
-
+import { transitQueries, readQuery, invalidateTransit } from "../lib/query/transitQueries";
+const invalidate = () => invalidateTransit(["routes", "geometry", "route", "stops"]);
 export const routeService = {
-  list: listRoutes,
-  get: (id) => api.get(`${API_PATHS.routes}/${id}`).then(({ data }) => data),
-  create: (payload) => api.post(API_PATHS.routes, payload).then(({ data }) => { clearRoutesCache(); return data; }),
-  update: (id, payload) => api.put(`${API_PATHS.routes}/${id}`, payload).then(({ data }) => { clearRoutesCache(); return data; }),
-  delete: (id) => api.delete(`${API_PATHS.routes}/${id}`).then(({ data }) => { clearRoutesCache(); return data; }),
-  invalidateCache: clearRoutesCache,
+  list: (params) => readQuery(transitQueries.routes(params)),
+  listWithGeometry: () => readQuery(transitQueries.geometry()),
+  get: (id) => readQuery(transitQueries.route(id)),
+  create: async (payload) => { const { data } = await api.post(API_PATHS.routes, payload); await invalidate(); return data; },
+  update: async (id, payload) => { const { data } = await api.put(API_PATHS.routes + "/" + id, payload); await invalidate(); return data; },
+  delete: async (id) => { const { data } = await api.delete(API_PATHS.routes + "/" + id); await invalidate(); return data; },
+  invalidateCache: invalidate,
 };

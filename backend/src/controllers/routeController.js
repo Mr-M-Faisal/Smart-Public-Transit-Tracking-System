@@ -24,7 +24,10 @@ const createRoute = async (req, res) => {
 };
 const getRoutes = async (req, res) => {
   try {
-    const routes = await Route.find({ isActive: true }).sort({ createdAt: -1 });
+    // Only map consumers opt into stored outbound/return road coordinates.
+    const routes = await Route.find({ isActive: true })
+      .select(req.query.includeGeometry === 'true' ? '' : '-geometry')
+      .sort({ createdAt: -1 }).lean();
     res.status(200).json(routes);
   } catch (error) {
     res.status(500).json({ message: "Server error" });

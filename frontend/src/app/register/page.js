@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import RegisterPage from "../../components/auth/RegisterPage";
-import { LoadingSpinner } from "../../components/common/LoadingSpinner";
+import { LoadingPageShell } from "../../components/common/LoadingPageShell";
 
 export const metadata = {
   title: "Create Account | Smart Safar Faisalabad",
@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function RegisterRoute() {
   return (
-    <Suspense fallback={<div className="grid min-h-screen place-items-center bg-[var(--background)]"><LoadingSpinner /></div>}>
+    <Suspense fallback={<LoadingPageShell title="Create account" />}>
       <RegisterPage />
     </Suspense>
   );

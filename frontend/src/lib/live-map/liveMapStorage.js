@@ -124,3 +124,7 @@ export async function clearPrivateSnapshots(token) {
     // Logging out remains successful when the browser denies storage access.
   }
 }
+
+// Public query records reuse the existing snapshots store. Live/private data is excluded.
+export function readPublicQueries() { return read("public-queries-v1"); }
+export function savePublicQueries(entries) { return write("public-queries-v1", entries); }

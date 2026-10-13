@@ -81,5 +81,7 @@ const busSchema = new mongoose.Schema(
 
 busSchema.index({ route: 1 });
 
-module.exports = mongoose.model("Bus", busSchema);
+// Assignment validation and driver deletion query buses by driver.
+busSchema.index({ driver: 1 });
 
+module.exports = mongoose.model("Bus", busSchema);

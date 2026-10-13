@@ -5,7 +5,12 @@ let socket;
 let consumers = 0;
 
 export function getSocket() {
-  if (!socket) socket = io(SOCKET_URL || undefined, { autoConnect: false });
+  if (!socket) {
+    socket = io(SOCKET_URL || undefined, { autoConnect: false });
+    const watchedBuses = new Set();
+    socket.onAnyOutgoing((event, busId) => { if (event === "watchBus" && busId) watchedBuses.add(String(busId)); });
+    socket.on("connect", () => watchedBuses.forEach((id) => socket.emit("watchBus", id)));
+  }
   return socket;
 }
 
