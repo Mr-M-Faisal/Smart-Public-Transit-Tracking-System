@@ -142,3 +142,23 @@ test('configured seats stay consistent across driver, booking, concurrency, and 
   assert.equal(finalBus.data.seatMap.find((seat) => seat.label === 'A1').status, 'available');
   assert.equal(finalBus.data.availableSeats, finalBus.data.seatMap.filter((seat) => seat.status === 'available').length);
 });
+
+// Real MongoDB contract coverage complements the isolated middleware tests.
+test('fleet summaries omit seats while route detail and map opt-in preserve geometry', async () => {
+  const geometry = { outbound: [[31.42, 73.08], [31.43, 73.09]], return: [[31.43, 73.09], [31.42, 73.08]] };
+  await Route.findByIdAndUpdate(route._id, { geometry });
+  const routes = await request('/api/routes');
+  assert.equal(routes.status, 200);
+  assert.equal(Object.hasOwn(routes.data.find((item) => item._id === route._id), 'geometry'), false);
+  const detailed = await request('/api/routes/' + route._id);
+  assert.deepEqual(detailed.data.geometry, geometry);
+  const mapped = await request('/api/routes?includeGeometry=true');
+  assert.deepEqual(mapped.data.find((item) => item._id === route._id).geometry, geometry);
+  const fleet = await request('/api/buses?route=' + route._id);
+  assert.equal(fleet.status, 200);
+  assert.ok(fleet.data.length);
+  assert.ok(fleet.data.every((item) => !Object.hasOwn(item, 'seatMap')));
+  const detail = await request('/api/buses/' + bus._id);
+  assert.equal(detail.data.seatMap.length, 6);
+  assert.ok(detail.data.seatMap.every((seat) => !Object.hasOwn(seat, 'booking')));
+});

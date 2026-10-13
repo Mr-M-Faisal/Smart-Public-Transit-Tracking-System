@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { BusFront, Clock3, MapPin, Users } from "lucide-react";
 import { Badge } from "../common/Badge";
 import { Card } from "../common/Card";
@@ -8,9 +8,9 @@ const occupancyTone = { Available: "success", Limited: "warning", Full: "danger"
 export function BusCard({ bus }) {
   const operating = bus.status === "active" || bus.status === "Active" || ["On Time", "Delayed", "Arriving"].includes(bus.status);
   const liveDetails = [
-    bus.eta && { icon: Clock3, label: "ETA", value: bus.eta },
-    bus.nextStop && { icon: MapPin, label: "Next", value: bus.nextStop },
-    (bus.occupancy || bus.availableSeats != null) && { icon: Users, label: "Seats", value: bus.occupancy || `${bus.availableSeats} available`, tone: occupancyTone[bus.occupancy] || "neutral" },
+    !bus.isSaved && bus.eta && { icon: Clock3, label: "ETA", value: bus.eta },
+    !bus.isSaved && bus.nextStop && { icon: MapPin, label: "Next", value: bus.nextStop },
+    !bus.isSaved && (bus.occupancy || bus.availableSeats != null) && { icon: Users, label: "Seats", value: bus.occupancy || `${bus.availableSeats} available`, tone: occupancyTone[bus.occupancy] || "neutral" },
   ].filter(Boolean);
 
   return <Link href={`/buses/${bus.id}`} className="block">
@@ -22,7 +22,7 @@ export function BusCard({ bus }) {
         <div className="min-w-0 flex-1 p-3">
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 truncate text-[11px] font-extrabold uppercase tracking-[0.11em] text-[var(--primary-ink)]">{bus.routeName || bus.route || "Transit route"}</p>
-            <Badge tone={operating ? "success" : "neutral"}>{operating ? "Live" : "Off"}</Badge>
+            <Badge tone={operating ? "success" : "neutral"}>{bus.isSaved ? "Last known" : operating ? "Live" : "Off"}</Badge>
           </div>
           <h3 className="mt-1 text-base font-bold leading-tight text-[var(--foreground)]">{bus.number || bus.busNumber}</h3>
           {bus.directionLabel && <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{bus.directionLabel}</p>}

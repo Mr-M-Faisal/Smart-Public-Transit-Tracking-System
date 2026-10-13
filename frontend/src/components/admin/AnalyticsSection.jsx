@@ -4,32 +4,26 @@ import { BarChart3, TrendingUp, Users, DollarSign, Calendar } from "lucide-react
 import { Card } from "../common/Card";
 import { EmptyState } from "../common/EmptyState";
 
-export function AnalyticsSection({ bookingAnalytics = [], occupancyAnalytics = [], loading }) {
-  if (loading) {
-    return (
-      <div className="grid items-stretch gap-6 lg:grid-cols-2">
-        <Card className="h-full p-5 animate-pulse">
-          <div className="h-5 w-44 bg-[var(--skeleton)] rounded mb-4" />
-          <div className="h-48 bg-[var(--skeleton)] rounded" />
-        </Card>
-        <Card className="h-full p-5 animate-pulse">
-          <div className="h-5 w-44 bg-[var(--skeleton)] rounded mb-4" />
-          <div className="h-48 bg-[var(--skeleton)] rounded" />
-        </Card>
-      </div>
-    );
-  }
-
+import { SectionSkeleton } from "../common/SectionSkeleton";
+export function AnalyticsSection({ bookingAnalytics = [], occupancyAnalytics = [], bookingLoading, occupancyLoading, bookingError, occupancyError, onRetry }) {
+  return <div className="grid items-stretch gap-6 lg:grid-cols-2">
+    <ChartState loading={bookingLoading} error={bookingError} title="Booking activity" retry={onRetry}><BookingChart bookingAnalytics={bookingAnalytics} /></ChartState>
+    <ChartState loading={occupancyLoading} error={occupancyError} title="Route occupancy" retry={onRetry}><OccupancyChart occupancyAnalytics={occupancyAnalytics} /></ChartState>
+  </div>;
+}
+function ChartState({ loading, error, title, retry, children }) {
+  if (loading) return <SectionSkeleton variant="chart" count={1} label={'Loading ' + title} />;
+  if (error) return <Card className="min-h-72 p-5" role="alert"><h2 className="font-bold">{title}</h2><p className="mt-3">Unable to load this chart.</p><button type="button" className="mt-3 underline" onClick={retry}>Retry</button></Card>;
+  return children;
+}
+function BookingChart({ bookingAnalytics }) {
   // Calculate totals from bookingAnalytics
   const totalBookings7d = bookingAnalytics.reduce((acc, curr) => acc + (curr.totalBookings || 0), 0);
   const totalRevenue7d = bookingAnalytics.reduce((acc, curr) => acc + (curr.totalRevenue || 0), 0);
   const totalCancelled7d = bookingAnalytics.reduce((acc, curr) => acc + (curr.cancelled || 0), 0);
   const maxDailyBookings = Math.max(1, ...bookingAnalytics.map((d) => d.totalBookings || 0));
 
-  return (
-    <div className="grid items-stretch gap-6 lg:grid-cols-2">
-      {/* 7-Day Booking Analytics Card */}
-      <Card className="flex h-full flex-col justify-between p-5">
+  return (<Card className="flex h-full flex-col justify-between p-5">
         <div>
           <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
             <div className="flex items-center gap-2">
@@ -99,10 +93,10 @@ export function AnalyticsSection({ bookingAnalytics = [], occupancyAnalytics = [
             </div>
           )}
         </div>
-      </Card>
-
-      {/* Route Occupancy Card */}
-      <Card className="flex h-full flex-col justify-between p-5">
+      </Card>);
+}
+function OccupancyChart({ occupancyAnalytics }) {
+  return (<Card className="flex h-full flex-col justify-between p-5">
         <div>
           <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
             <div className="flex items-center gap-2">
@@ -166,7 +160,5 @@ export function AnalyticsSection({ bookingAnalytics = [], occupancyAnalytics = [
             </div>
           )}
         </div>
-      </Card>
-    </div>
-  );
+      </Card>);
 }

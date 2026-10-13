@@ -54,6 +54,8 @@ bookingSchema.pre('save', function stopLocationForInactiveBooking(next) {
   next();
 });
 
+// Dashboard counts and date-range booking analytics have no user filter.
+bookingSchema.index({ createdAt: -1 });
 bookingSchema.index({ user: 1, createdAt: -1 });
 bookingSchema.index({ bus: 1, status: 1, seatNumber: 1 });
 bookingSchema.index({ route: 1, status: 1 });

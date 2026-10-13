@@ -55,4 +55,20 @@ async function findOrCreatePhysicalStop(data, { session } = {}) {
   return stop;
 }
 
-module.exports = { cleanText, stopIdentity, publicRouteStop, getStopsForRoute, routeHasStops, findOrCreatePhysicalStop };
+// Batch the same physical-stop/assignment merge used by route details. Read only.
+async function getStopsForRoutes(routeIds) {
+  if (!routeIds.length) return [];
+  const [assignments, legacy] = await Promise.all([
+    RouteStop.find({ route: { $in: routeIds } }).sort({ stopOrder: 1, createdAt: 1 }).populate('stop').lean(),
+    Stop.find({ route: { $in: routeIds } }).select('+route +stopOrder').sort({ stopOrder: 1 }).lean(),
+  ]);
+  const result = assignments.map(publicRouteStop).filter(Boolean);
+  const linked = new Set(result.map((stop) => String(stop.route) + ':' + String(stop._id)));
+  for (const stop of legacy) {
+    const key = String(stop.route) + ':' + String(stop._id);
+    if (!linked.has(key)) { result.push(stop); linked.add(key); }
+  }
+  return result.sort((a, b) => String(a.route).localeCompare(String(b.route)) || a.stopOrder - b.stopOrder);
+}
+
+module.exports = { getStopsForRoutes, cleanText, stopIdentity, publicRouteStop, getStopsForRoute, routeHasStops, findOrCreatePhysicalStop };

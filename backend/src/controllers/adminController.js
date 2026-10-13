@@ -1,3 +1,4 @@
+const { overviewData, bookingAnalyticsData } = require('../services/dashboardService');
 const Bus = require('../models/Bus');
 const Route = require('../models/Route');
 const Booking = require('../models/Booking');
@@ -9,36 +10,7 @@ const Shift = require('../models/Shift');
 // @access  Private (admin)
 const getFleetOverview = async (req, res) => {
   try {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const [
-      totalBuses,
-      activeBuses,
-      idleBuses,
-      maintenanceBuses,
-      totalRoutes,
-      bookingsToday,
-      openReports,
-      activeShifts,
-    ] = await Promise.all([
-      Bus.countDocuments({}),
-      Bus.countDocuments({ status: 'active' }),
-      Bus.countDocuments({ status: 'idle' }),
-      Bus.countDocuments({ status: 'maintenance' }),
-      Route.countDocuments({ isActive: true }),
-      Booking.countDocuments({ createdAt: { $gte: startOfToday } }),
-      Report.countDocuments({ status: 'open' }),
-      Shift.countDocuments({ status: 'active' }),
-    ]);
-
-    res.status(200).json({
-      buses: { total: totalBuses, active: activeBuses, idle: idleBuses, maintenance: maintenanceBuses },
-      routes: { total: totalRoutes },
-      bookingsToday,
-      openReports,
-      activeShifts,
-    });
+    res.status(200).json(await overviewData());
   } catch (err) {
     res.status(500).json({ message: 'Server error fetching fleet overview', error: err.message });
   }
@@ -49,31 +21,7 @@ const getFleetOverview = async (req, res) => {
 // @access  Private (admin)
 const getBookingsAnalytics = async (req, res) => {
   try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // include today = 7 days total
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-
-    const results = await Booking.aggregate([
-      // Stage 1: only look at bookings from the last 7 days
-      { $match: { createdAt: { $gte: sevenDaysAgo } } },
-
-      // Stage 2: group bookings by their calendar day
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          totalBookings: { $sum: 1 },
-          totalRevenue: { $sum: '$fare' },
-          cancelled: {
-            $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] },
-          },
-        },
-      },
-
-      // Stage 3: sort oldest to newest so it plots left-to-right on a chart
-      { $sort: { _id: 1 } },
-    ]);
-
-    res.status(200).json(results);
+    res.status(200).json(await bookingAnalyticsData());
   } catch (err) {
     res.status(500).json({ message: 'Server error fetching booking analytics', error: err.message });
   }

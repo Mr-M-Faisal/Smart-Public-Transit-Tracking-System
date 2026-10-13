@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { CardBackdrop } from "../common/CardBackdrop";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { BusFront, AlertTriangle, ArrowRight, Clock3, History, Route as RouteIcon, Search, Ticket } from "lucide-react";
-import { routeService } from "../../services/routeService";
-import { busService } from "../../services/busService";
+import { useTransitQuery, useTransitQueries, useLiveConnection } from "../../hooks/useTransitQuery";
+import { transitQueries } from "../../lib/query/transitQueries";
+import { CacheStatus, useOnline } from "../common/CacheStatus";
 import { bookingService } from "../../services/bookingService";
 import { alertService } from "../../services/alertService";
 import { useLiveBuses } from "../../hooks/useLiveBuses";
@@ -26,44 +27,34 @@ function etaLabel(value) {
 
 export default function CommuterHome() {
   const liveUpdates = useLiveBuses([]);
-  const [data, setData] = useState({ routes: [], buses: [], bookings: [], etas: {}, alerts: [], loading: true, error: false });
+  const routesQuery = useTransitQuery(transitQueries.routes());
+  const busesQuery = useTransitQuery(transitQueries.buses());
+  const online = useOnline();
+  const connected = useLiveConnection();
+  const etaQueries = useTransitQueries((busesQuery.data || []).filter((bus) => bus.status === "active").map((bus) => transitQueries.eta(bus._id)));
+  const etas = Object.fromEntries((busesQuery.data || []).filter((bus) => bus.status === "active").map((bus, index) => [bus._id, online && connected && !etaQueries[index]?.isStale ? etaQueries[index]?.data : null]));
+  const [secondary, setData] = useState({ routes: [], buses: [], bookings: [], etas: {}, alerts: [], loading: true, error: false });
 
   useEffect(() => {
     let active = true;
     Promise.resolve().then(async () => {
-      const [routesResult, busesResult, bookingsResult] = await Promise.allSettled([routeService.list(), busService.list(), bookingService.getMyBookings()]);
-      const routes = routesResult.status === "fulfilled" ? (Array.isArray(routesResult.value) ? routesResult.value : routesResult.value.routes || []) : [];
-      const buses = busesResult.status === "fulfilled" && Array.isArray(busesResult.value) ? busesResult.value : [];
-      const bookings = bookingsResult.status === "fulfilled" ? (Array.isArray(bookingsResult.value) ? bookingsResult.value : bookingsResult.value.bookings || []) : [];
-      // Render the primary dashboard as soon as its independent requests settle.
-      // ETA and alerts are secondary and should not hold routes, buses or trips back.
+      const [bookings, alerts] = await Promise.all([bookingService.getMyBookings().catch(() => []), alertService.listActive().catch(() => [])]);
       if (!active) return;
-      setData({ routes, buses, bookings, etas: {}, alerts: [], loading: false, error: routesResult.status === "rejected" || busesResult.status === "rejected" });
-      const operating = buses.filter((bus) => bus.status === "active");
-      Promise.all([
-        Promise.allSettled(operating.map((bus) => busService.getEta(bus._id))),
-        Promise.allSettled(routes.map((route) => alertService.listByRoute(getRouteId(route)))),
-      ]).then(([etaResults, alertResults]) => {
-        if (!active) return;
-        const etas = Object.fromEntries(operating.map((bus, index) => [bus._id, etaResults[index].status === "fulfilled" ? etaResults[index].value : null]));
-        const alerts = alertResults.flatMap((result, index) => result.status === "fulfilled" && Array.isArray(result.value)
-          ? result.value.map((alert) => ({ ...alert, routeName: routes[index].routeName }))
-          : []);
-        setData((current) => ({ ...current, etas, alerts }));
-      });
+      setData((current) => ({ ...current, bookings: Array.isArray(bookings) ? bookings : bookings.bookings || [], alerts }));
     });
     return () => { active = false; };
   }, []);
 
-  const buses = useMemo(() => data.buses.map((bus) => {
+  const data = { ...secondary, etas, routes: routesQuery.data || [], buses: online && !busesQuery.isError ? busesQuery.data || [] : [], loading: routesQuery.loading, error: busesQuery.isError };
+  const buses = data.buses.map((bus) => {
     const update = liveUpdates.find((item) => String(item.id || item._id || item.busId) === String(bus._id));
     return update ? { ...bus, ...update, status: update.status || bus.status } : bus;
-  }), [data.buses, liveUpdates]);
+  });
   const operatingBuses = buses.filter((bus) => bus.status === "active");
   const current = data.bookings.find((booking) => booking.status === "confirmed");
   const routeMap = Object.fromEntries(data.routes.map((route) => [getRouteId(route), route]));
 
-  return <main className="commuter-home">
+  return <main className="commuter-home"><CacheStatus query={routesQuery} />
     <section className="commuter-intro premium-card premium-card--primary premium-card--imagery p-5 sm:p-7"><CardBackdrop visual="transit" priority /><p>Your Faisalabad journey</p><h1>Where are you going?</h1><span>Find a route, follow an active bus, or manage your next trip.</span></section>
     <Link href="/routes" className="commuter-search"><Search size={20} /><span>Search routes and destinations</span><ArrowRight size={18} /></Link>
 

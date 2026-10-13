@@ -2,15 +2,15 @@
 
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { BusFront, MapPin } from "lucide-react";
 import { AdminDialog } from "../AdminDialog";
 import { Button } from "../../common/Button";
 import { ErrorState } from "../../common/ErrorState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { ClientTransitMap } from "../../map/MapShell";
-import { StopMarker } from "../../map/StopMarker";
-import { MapViewport } from "../../map/MapViewport";
+import { StopMarker } from "../../map/MapShell";
+import { MapViewport } from "../../map/MapShell";
 import { getOrderedRouteStops, getStopPosition } from "../../../lib/transit/coordinates";
 import { stopService } from "../../../services/stopService";
 import { busService } from "../../../services/busService";

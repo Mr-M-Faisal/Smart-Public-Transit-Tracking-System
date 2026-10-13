@@ -28,4 +28,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return Boolean(this.password) && bcrypt.compare(enteredPassword, this.password);
 };
 
+// Driver directory filters by role and orders by name/id.
+userSchema.index({ role: 1, name: 1, _id: 1 });
+
 module.exports = mongoose.model('User', userSchema);

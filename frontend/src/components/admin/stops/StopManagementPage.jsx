@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -17,10 +17,9 @@ import { Button } from "../../common/Button";
 import { Card } from "../../common/Card";
 import { CardBackdrop } from "../../common/CardBackdrop";
 import { CompactPageSearch } from "../CompactPageSearch";
-import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { PageSkeleton } from "../../common/SectionSkeleton";
 import { useAuth } from "../../../hooks/useAuth";
 import { getProfile } from "../../../services/authService";
-import { routeService } from "../../../services/routeService";
 import { stopService } from "../../../services/stopService";
 import { clearAccessToken } from "../../../lib/auth/token";
 import { StopTable } from "./StopTable";
@@ -66,24 +65,9 @@ export default function StopManagementPage() {
       }
       setProfile(user);
 
-      const routesData = await routeService.list();
-      const loadedRoutes = Array.isArray(routesData) ? routesData : routesData?.routes || [];
-      setRoutes(loadedRoutes);
-
-      // Load stops for all routes in parallel
-      const stopResults = await Promise.allSettled(
-        loadedRoutes.map((r) => stopService.listByRoute(r._id || r.id))
-      );
-
-      const allStops = [];
-      stopResults.forEach((result, index) => {
-        if (result.status === "fulfilled" && Array.isArray(result.value)) {
-          result.value.forEach((stop) => {
-            allStops.push({ ...stop, _routeName: loadedRoutes[index]?.routeName || "Unknown" });
-          });
-        }
-      });
-
+      const groups = await stopService.listGrouped();
+      setRoutes(groups.map((group) => group.route));
+      const allStops = groups.flatMap(({ route, stops }) => stops.map((stop) => ({ ...stop, _routeName: route.routeName })));
       setStops(allStops);
     } catch (err) {
       console.error("Stop management load error", err);
@@ -156,9 +140,7 @@ export default function StopManagementPage() {
   if (authLoading || (loading && !profile && !error)) {
     return (
       <PageShell>
-        <div className="grid min-h-[60vh] place-items-center">
-          <LoadingSpinner label="Authenticating administrator..." />
-        </div>
+        <PageSkeleton title="Stop management" variant="rows" />
       </PageShell>
     );
   }

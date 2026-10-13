@@ -11,4 +11,8 @@ const reportSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Report lists sort newest first, optionally filtered by status.
+reportSchema.index({ createdAt: -1 });
+reportSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Report', reportSchema);

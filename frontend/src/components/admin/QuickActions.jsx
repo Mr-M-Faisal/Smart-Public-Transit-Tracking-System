@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { BusFront, ArrowRight, BellRing, Flag, MapPinned, Route as RouteIcon, UserRoundCheck } from "lucide-react";
 import { Card } from "../common/Card";
 

@@ -20,4 +20,7 @@ const routeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Active route catalogue ordered newest first.
+routeSchema.index({ isActive: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Route', routeSchema);

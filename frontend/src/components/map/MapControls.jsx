@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { ArrowLeft, LocateFixed, Maximize2, Plus, Minus, ScanSearch, Navigation } from "lucide-react";
 import { useMap } from "react-leaflet";
 import { Button } from "../common/Button";

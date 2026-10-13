@@ -1,7 +1,7 @@
 "use client";
 
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { useCallback, useEffect, useState } from "react";
 import { BusFront, ArrowLeft,
   CheckCircle2,

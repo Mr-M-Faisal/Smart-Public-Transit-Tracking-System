@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { ExternalLink, Map as MapIcon } from "lucide-react";
 import { ClientTransitMap } from "../map/MapShell";
-import { BusMarker } from "../map/BusMarker";
-import { StopMarker } from "../map/StopMarker";
-import { MapControls } from "../map/MapControls";
-import { MapViewport } from "../map/MapViewport";
+import { BusMarker } from "../map/MapShell";
+import { StopMarker } from "../map/MapShell";
+import { MapControls } from "../map/MapShell";
+import { MapViewport } from "../map/MapShell";
 import { getBusPosition } from "../../lib/transit/format";
 import { getStopPosition, isValidPosition } from "../../lib/transit/coordinates";
 
@@ -27,7 +27,7 @@ export function AdminMapWidget({ buses = [], stops = [], stopsError = false, sto
     <div className="admin-map-surface min-h-[320px] w-full flex-1 sm:min-h-[420px]">
       <ClientTransitMap center={allPositions[0] || [31.4187, 73.0791]} zoom={13} className="h-full w-full">
         <MapViewport positions={allPositions} />
-        {mappedStops.map((stop) => <StopMarker key={stop._id} position={getStopPosition(stop)} stop={stop} />)}
+        {mappedStops.map((stop) => <StopMarker key={String(stop.route) + ":" + String(stop._id)} position={getStopPosition(stop)} stop={stop} />)}
         {busPositions.map(({ bus, position }) => <BusMarker key={bus._id} position={position} bus={bus} />)}
         <MapControls onShowAll={(map) => allPositions.length && map.fitBounds(allPositions, { padding: [36, 36], maxZoom: 15 })} />
       </ClientTransitMap>

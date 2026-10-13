@@ -12,7 +12,10 @@ function subscribe(callback) {
   };
 }
 
+const subscribeHydration = () => () => {};
+
 export function useAuth() {
+  const isLoading = useSyncExternalStore(subscribeHydration, () => false, () => true);
   const token = useSyncExternalStore(subscribe, getAccessToken, () => null);
-  return { token, isAuthenticated: Boolean(token), isLoading: false };
+  return { token, isAuthenticated: Boolean(token), isLoading };
 }

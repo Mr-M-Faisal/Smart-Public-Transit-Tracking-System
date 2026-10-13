@@ -6,7 +6,9 @@ import { Button } from "../../common/Button";
 import { getStopPosition, isValidPosition } from "../../../lib/transit/coordinates";
 import { getAdminError } from "../../../lib/transit/adminErrors";
 import { stopService } from "../../../services/stopService";
-import { StopLocationPicker } from "./StopLocationPicker";
+import dynamic from "next/dynamic";
+import { SectionSkeleton } from "../../common/SectionSkeleton";
+const StopLocationPicker = dynamic(() => import("./StopLocationPicker").then((module) => module.StopLocationPicker), { ssr: false, loading: () => <SectionSkeleton variant="map" label="Loading stop location map" /> });
 
 export function EditStopModal({ isOpen, stop, ...props }) {
   if (!isOpen || !stop) return null;

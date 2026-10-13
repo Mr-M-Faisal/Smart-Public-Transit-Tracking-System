@@ -1,7 +1,7 @@
 "use client";
 
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BusFront, ArrowLeft,
@@ -22,8 +22,8 @@ import { Button } from "../common/Button";
 import { Card } from "../common/Card";
 import { ErrorState } from "../common/ErrorState";
 import { ClientTransitMap } from "../map/MapShell";
-import { MapViewport } from "../map/MapViewport";
-import { StopMarker } from "../map/StopMarker";
+import { MapViewport } from "../map/MapShell";
+import { StopMarker } from "../map/MapShell";
 import { BookingProgress } from "./BookingProgress";
 import { busService } from "../../services/busService";
 import { routeService } from "../../services/routeService";

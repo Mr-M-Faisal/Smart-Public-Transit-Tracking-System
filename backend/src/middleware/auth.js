@@ -15,7 +15,8 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+    // Read current authorization on every request; never cache roles/assignments.
+    req.user = await User.findById(decoded.id).select('_id role assignedBus').lean();
 
     if (!req.user) {
       return res.status(401).json({ message: 'Not authorized, user no longer exists' });

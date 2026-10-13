@@ -9,6 +9,7 @@ const {
 } = require('../controllers/stopController');
 const { protect, authorize } = require('../middleware/auth');
 
+router.get('/grouped', protect, authorize('admin'), require('../controllers/stopController').getGroupedStops);
 router.get('/route/:routeId', getStopsByRoute);
 router.get('/:id', getStopById);
 router.post('/', protect, authorize('admin'), createStop);

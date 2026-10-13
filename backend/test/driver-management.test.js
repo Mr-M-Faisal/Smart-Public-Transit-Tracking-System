@@ -1021,3 +1021,63 @@ test('concurrent bus deletion and assignment cannot leave a dangling profile ass
   assert.equal(await Bus.findById(busB._id), null);
   assert.equal((await profile(driverTokenA)).assignedBus, null);
 });
+
+// Phase 2: exercise new reads through real authorization and MongoDB queries.
+test('dashboard sections are admin-only, compact, and honor immediate role revocation', async () => {
+  assert.equal((await request('/api/admin/dashboard')).status, 401);
+  assert.equal((await request('/api/admin/dashboard', commuterToken)).status, 403);
+  assert.equal((await request('/api/admin/dashboard?section=invalid', adminToken)).status, 400);
+  const response = await request('/api/admin/dashboard', adminToken);
+  assert.equal(response.status, 200);
+  const sections = response.data.sections;
+  for (const name of ['overview', 'bookings', 'reports', 'buses', 'routes', 'stops', 'occupancy']) assert.equal(sections[name].status, 'ready', name);
+  assert.deepEqual(sections.overview.data, (await request('/api/admin/overview', adminToken)).data);
+  assert.deepEqual(sections.bookings.data, (await request('/api/admin/analytics/bookings', adminToken)).data);
+  assert.ok(sections.buses.data.every((bus) => !Object.hasOwn(bus, 'seatMap') && !Object.hasOwn(bus, 'recentSpeeds')));
+  assert.ok(sections.routes.data.every((route) => !Object.hasOwn(route, 'geometry')));
+  assert.ok(sections.reports.data.reports.length <= 20);
+  assert.ok(sections.reports.data.reports.every((report) => !report.user || !Object.hasOwn(report.user, 'email')));
+  const adminId = require('jsonwebtoken').verify(adminToken, process.env.JWT_SECRET).id;
+  try {
+    await User.findByIdAndUpdate(adminId, { role: 'commuter' });
+    assert.equal((await request('/api/admin/dashboard', adminToken)).status, 403);
+  } finally { await User.findByIdAndUpdate(adminId, { role: 'admin' }); }
+});
+
+test('grouped stops preserve physical identity, route ordering and legacy compatibility', async () => {
+  assert.equal((await request('/api/stops/grouped')).status, 401);
+  assert.equal((await request('/api/stops/grouped', commuterToken)).status, 403);
+  const RouteStop = require('../src/models/RouteStop');
+  const first = await Route.create({ routeName: 'Batch first', startPoint: 'A', endPoint: 'B' });
+  const second = await Route.create({ routeName: 'Batch second', startPoint: 'B', endPoint: 'C' });
+  const shared = await Stop.create({ stopName: 'Shared batch stop', latitude: 31.4, longitude: 73.1, route: first._id, stopOrder: 2 });
+  const legacy = await Stop.create({ stopName: 'Legacy batch stop', latitude: 31.41, longitude: 73.11, route: first._id, stopOrder: 1 });
+  await RouteStop.create([{ route: first._id, stop: shared._id, stopOrder: 2 }, { route: second._id, stop: shared._id, stopOrder: 1 }]);
+  const before = await Stop.countDocuments();
+  const response = await request('/api/stops/grouped', adminToken);
+  assert.equal(response.status, 200);
+  const one = response.data.find((group) => group.route._id === String(first._id));
+  const two = response.data.find((group) => group.route._id === String(second._id));
+  assert.deepEqual(one.stops.map((stop) => stop._id), [String(legacy._id), String(shared._id)]);
+  assert.deepEqual(two.stops.map((stop) => stop._id), [String(shared._id)]);
+  assert.equal(await Stop.countDocuments(), before);
+  const detail = await request('/api/stops/route/' + first._id);
+  assert.deepEqual(one.stops.map((stop) => [stop._id, stop.stopOrder]), detail.data.map((stop) => [stop._id, stop.stopOrder]));
+});
+
+test('aggregated notifications require authentication and exclude expired/inactive-route alerts', async () => {
+  const active = await Route.create({ routeName: 'Notification active', startPoint: 'A', endPoint: 'B' });
+  const inactive = await Route.create({ routeName: 'Notification inactive', startPoint: 'A', endPoint: 'B', isActive: false });
+  const persistent = await RouteAlert.create({ route: active._id, message: 'Persistent' });
+  const current = await RouteAlert.create({ route: active._id, message: 'Current', expiresAt: new Date(Date.now() + 600000) });
+  const expired = await RouteAlert.create({ route: active._id, message: 'Expired', expiresAt: new Date(Date.now() - 600000) });
+  const hidden = await RouteAlert.create({ route: inactive._id, message: 'Inactive route' });
+  assert.equal((await request('/api/route-alerts/active')).status, 401);
+  const response = await request('/api/route-alerts/active', commuterToken);
+  assert.equal(response.status, 200);
+  const ids = response.data.map((alert) => alert._id);
+  assert.ok(ids.includes(String(persistent._id)) && ids.includes(String(current._id)));
+  assert.ok(!ids.includes(String(expired._id)) && !ids.includes(String(hidden._id)));
+  assert.equal(response.data.find((alert) => alert._id === String(current._id)).routeName, active.routeName);
+  assert.equal((await request('/api/route-alerts/route/' + active._id)).status, 200);
+});

@@ -7,6 +7,7 @@ const {
 } = require('../controllers/routeAlertController');
 const { protect, authorize } = require('../middleware/auth');
 
+router.get('/active', protect, require('../controllers/routeAlertController').getActiveAlerts);
 router.get('/route/:routeId', getAlertsByRoute);
 router.post('/', protect, authorize('admin'), createRouteAlert);
 router.delete('/:id', protect, authorize('admin'), deleteRouteAlert);

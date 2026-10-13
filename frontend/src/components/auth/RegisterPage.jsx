@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../common/SmartLink";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";

@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
+const { createOriginPolicy } = require('./config/cors');
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const { Server } = require('socket.io');
@@ -9,11 +11,25 @@ const { activeDriverContext } = require('./services/bookingService');
 
 const app = express();
 const server = http.createServer(app);
+const isAllowedOrigin = createOriginPolicy();
+const corsOptions = {
+  origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
+  credentials: true,
+};
 const io = new Server(server, {
-  cors: { origin: '*' },
+  cors: corsOptions,
+  // CORS alone does not restrict WebSocket upgrades.
+  allowRequest: (req, callback) => callback(null, isAllowedOrigin(req.headers.origin)),
 });
 
-app.use(cors());
+app.use((req, res, next) => {
+  if (!isAllowedOrigin(req.headers.origin)) return res.status(403).json({ message: 'Origin not allowed' });
+  next();
+});
+app.use(cors(corsOptions));
+// Defaults skip small bodies, non-compressible MIME types, already encoded
+// resources and Cache-Control: no-transform responses.
+app.use(compression());
 app.use(express.json({ limit: '2mb' }));
 
 // Make io accessible inside controllers via req.app.get('io')

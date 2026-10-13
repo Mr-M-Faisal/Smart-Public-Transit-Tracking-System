@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Wifi, WifiOff, X } from "lucide-react";
+import { useDataSaver } from "../../hooks/useDataSaver";
 import { useAuth } from "../../hooks/useAuth";
 import { getAccessToken } from "../../lib/auth/token";
 import { getBookingQueueSummary, syncPendingBookings } from "../../lib/offline/bookingQueue";
@@ -43,6 +44,7 @@ function isOfflinePublicPath(pathname) {
 }
 
 export function PwaSupport() {
+  const { enabled: dataSaver } = useDataSaver();
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const [online, setOnline] = useState(true);
@@ -202,7 +204,7 @@ export function PwaSupport() {
   }, []);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator) || !navigator.onLine) return undefined;
+    if (dataSaver || process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator) || !navigator.onLine) return undefined;
     let cancelled = false;
     let idleHandle;
     const schedule = window.requestIdleCallback
@@ -226,7 +228,7 @@ export function PwaSupport() {
       });
     });
     return () => { cancelled = true; if (idleHandle != null) cancel(idleHandle); };
-  }, []);
+  }, [dataSaver]);
 
   useEffect(() => {
     if (!window.navigator.onLine || !isOfflinePublicPath(pathname)) return;

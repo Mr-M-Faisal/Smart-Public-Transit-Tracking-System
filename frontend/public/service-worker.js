@@ -1,7 +1,7 @@
 /* Public shell and public transit snapshots only. Private sessions, bookings,
    live sockets, map tiles, and mutations are deliberately never cached. */
-const SHELL_CACHE = "smart-safar-shell-v9";
-const TRANSIT_CACHE = "smart-safar-transit-v7";
+const SHELL_CACHE = "smart-safar-shell-v10";
+const TRANSIT_CACHE = "smart-safar-transit-v8";
 const STATIC_ASSETS = [
   "/",
   "/routes",
@@ -44,13 +44,6 @@ function isStaticAsset(url) {
   return url.origin === self.location.origin && (STATIC_ASSETS.includes(url.pathname) || url.pathname.startsWith("/_next/static/"));
 }
 
-function isTransitSnapshot(url) {
-  // Only stable public reference data is safe to serve from cache. Live bus
-  // positions, ETAs, seats, bookings, alerts, and auth state stay network-only.
-  return url.pathname === "/api/routes"
-    || /^\/api\/stops\/route\/[^/]+$/.test(url.pathname);
-}
-
 function normalizedCacheRequest(request) {
   const url = new URL(request.url);
   return new Request(url.origin + url.pathname + url.search, { method: "GET" });
@@ -77,10 +70,8 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
 
-  if (isTransitSnapshot(url)) {
-    event.respondWith(cacheFirst(request, TRANSIT_CACHE, new Response("Transit data is unavailable offline.", { status: 503, statusText: "Offline" })));
-    return;
-  }
+  // IndexedDB-backed queries own API persistence, including cross-origin APIs.
+  if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
   if (isFlightRequest(request, url)) {
     if (isPublicPage(url)) event.respondWith(cacheFirst(request, SHELL_CACHE, new Response("", { status: 503, statusText: "Offline" })));
     return;

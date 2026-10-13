@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../../common/SmartLink";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +18,7 @@ import { Button } from "../../common/Button";
 import { Card } from "../../common/Card";
 import { CardBackdrop } from "../../common/CardBackdrop";
 import { CompactPageSearch } from "../CompactPageSearch";
-import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { PageSkeleton } from "../../common/SectionSkeleton";
 import { useAuth } from "../../../hooks/useAuth";
 import { getProfile } from "../../../services/authService";
 import { routeService } from "../../../services/routeService";
@@ -136,9 +136,7 @@ export default function RouteManagementPage() {
   if (authLoading || (loading && !profile && !error)) {
     return (
       <PageShell>
-        <div className="grid min-h-[60vh] place-items-center">
-          <LoadingSpinner label="Authenticating administrator..." />
-        </div>
+        <PageSkeleton title="Route management" variant="rows" />
       </PageShell>
     );
   }

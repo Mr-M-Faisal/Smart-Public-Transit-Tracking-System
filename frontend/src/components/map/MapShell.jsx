@@ -1,7 +1,11 @@
 "use client";
-
 import dynamic from "next/dynamic";
-import { LoadingSpinner } from "../common/LoadingSpinner";
-
-
-export const ClientTransitMap = dynamic(() => import("./TransitMap").then((module) => module.TransitMap), { ssr: false, loading: () => <div className="grid min-h-[360px] place-items-center rounded-2xl bg-[var(--surface-subtle)] text-sm text-[var(--muted)]"><LoadingSpinner label="Loading map..." /></div> });
+import { SectionSkeleton } from "../common/SectionSkeleton";
+export const ClientTransitMap = dynamic(() => import("./TransitMap").then((module) => module.TransitMap), { ssr: false, loading: () => <SectionSkeleton variant="map" label="Loading map" /> });
+export const BusMarker = dynamic(() => import("./BusMarker").then((module) => module.BusMarker), { ssr: false });
+export const StopMarker = dynamic(() => import("./StopMarker").then((module) => module.StopMarker), { ssr: false });
+export const PassengerMarker = dynamic(() => import("./PassengerMarker").then((module) => module.PassengerMarker), { ssr: false });
+export const RoutePolyline = dynamic(() => import("./RoutePolyline").then((module) => module.RoutePolyline), { ssr: false });
+export const MapControls = dynamic(() => import("./MapControls").then((module) => module.MapControls), { ssr: false });
+export const MapViewport = dynamic(() => import("./MapViewport").then((module) => module.MapViewport), { ssr: false });
+export const UserLocationMarker = dynamic(() => import("./UserLocationMarker").then((module) => module.UserLocationMarker), { ssr: false });

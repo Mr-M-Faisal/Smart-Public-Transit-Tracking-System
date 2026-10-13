@@ -4,7 +4,7 @@ import { Component, useEffect, useRef, useState } from "react";
 import { Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import { Button } from "../../common/Button";
 import { ClientTransitMap } from "../../map/MapShell";
-import { MapViewport } from "../../map/MapViewport";
+import { MapViewport } from "../../map/MapShell";
 import { selectedStopMapIcon } from "../../map/transitMarkerIcons";
 import { LocationSearch } from "./LocationSearch";
 

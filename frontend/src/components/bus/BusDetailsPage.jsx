@@ -1,8 +1,8 @@
 "use client";
 
 
-import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "../common/SmartLink";
+import { useEffect, useState } from "react";
 import { BusFront, ArrowLeft, ArrowRight, Clock3, MapPin, RefreshCw, Route as RouteIcon, Users, X } from "lucide-react";
 import { Navbar } from "../navigation/Navbar";
 import { Footer } from "../navigation/Footer";
@@ -10,19 +10,20 @@ import { Badge } from "../common/Badge";
 import { Button } from "../common/Button";
 import { Card } from "../common/Card";
 import { ErrorState } from "../common/ErrorState";
-import { LoadingSpinner } from "../common/LoadingSpinner";
+import { BusDetailsSkeleton } from "./BusDetailsSkeleton";
 import { ClientTransitMap } from "../map/MapShell";
-import { BusMarker } from "../map/BusMarker";
-import { StopMarker } from "../map/StopMarker";
-import { RoutePolyline } from "../map/RoutePolyline";
-import { MapControls } from "../map/MapControls";
-import { MapViewport } from "../map/MapViewport";
+import { BusMarker } from "../map/MapShell";
+import { StopMarker } from "../map/MapShell";
+import { RoutePolyline } from "../map/MapShell";
+import { MapControls } from "../map/MapShell";
+import { MapViewport } from "../map/MapShell";
 import { useLiveBuses } from "../../hooks/useLiveBuses";
 import { useSocket } from "../../hooks/useSocket";
-import { busService } from "../../services/busService";
-import { routeService } from "../../services/routeService";
-import { stopService } from "../../services/stopService";
 import { getBusDirection, getDirectionLabel, getStopsInDirection } from "../../lib/transit/direction";
+
+import { useTransitQuery, useLiveConnection } from "../../hooks/useTransitQuery";
+import { transitQueries } from "../../lib/query/transitQueries";
+import { CacheStatus, useOnline } from "../common/CacheStatus";
 
 function getPosition(bus) {
   if (bus.currentLocation?.latitude != null && bus.currentLocation?.longitude != null) return [bus.currentLocation.latitude, bus.currentLocation.longitude];
@@ -61,48 +62,31 @@ function mergeUpdate(bus, update) {
 export default function BusDetailsPage({ busId }) {
   const socket = useSocket();
   const liveUpdates = useLiveBuses([]);
-  const [bus, setBus] = useState(null);
-  const [route, setRoute] = useState(null);
-  const [storedStops, setStops] = useState([]);
-  const [eta, setEta] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [socketConnected, setSocketConnected] = useState(() => socket.connected);
-
-  const loadBus = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const busData = await busService.get(busId);
-      const routeId = busData.route?._id || busData.route;
-      const [etaResult, routeResult, stopsResult] = await Promise.allSettled([
-        busService.getEta(busId),
-        routeId ? routeService.get(routeId) : Promise.resolve(null),
-        routeId ? stopService.listByRoute(routeId) : Promise.resolve([]),
-      ]);
-      setBus({ ...busData, position: getPosition(busData), eta: etaResult.status === "fulfilled" ? getEtaLabel(etaResult.value.etaMinutes) : null, nextStop: etaResult.status === "fulfilled" ? etaResult.value.nextStop?.stopName : null, nextStopId: etaResult.status === "fulfilled" ? etaResult.value.nextStop?._id : null, distanceKm: etaResult.status === "fulfilled" ? etaResult.value.distanceKm : null, direction: etaResult.status === "fulfilled" ? etaResult.value.direction : busData.direction });
-      setEta(etaResult.status === "fulfilled" ? etaResult.value : null);
-      setRoute(routeResult.status === "fulfilled" ? routeResult.value : null);
-      setStops(stopsResult.status === "fulfilled" && Array.isArray(stopsResult.value) ? stopsResult.value : []);
-    } catch (requestError) {
-      const isNotFound = requestError.response?.status === 404;
-      if (!isNotFound) console.error("Unable to load bus details", requestError);
-      setError(isNotFound ? "not-found" : "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [busId]);
-
-  useEffect(() => {
-    Promise.resolve().then(() => loadBus());
-  }, [loadBus]);
+  const busQuery = useTransitQuery({ ...transitQueries.bus(busId), refetchOnMount: "always" });
+  const metadataQuery = useTransitQuery(transitQueries.busMetadata(busId), false);
+  const busData = busQuery.data || metadataQuery.data;
+  const referenceId = busData?.route?._id || busData?.route;
+  const routeQuery = useTransitQuery(transitQueries.route(referenceId), Boolean(referenceId));
+  const stopsQuery = useTransitQuery(transitQueries.stops(referenceId), Boolean(referenceId));
+  const etaQuery = useTransitQuery(transitQueries.eta(busId));
+  const online = useOnline();
+  const connected = useLiveConnection();
+  const eta = online && !etaQuery.isError && !etaQuery.isStale ? etaQuery.data : null;
+  const bus = busData ? { ...busData, position: getPosition(busData), eta: getEtaLabel(eta?.etaMinutes), nextStop: eta?.nextStop?.stopName, nextStopId: eta?.nextStop?._id, distanceKm: eta?.distanceKm } : null;
+  const route = routeQuery.data;
+  const storedStops = stopsQuery.data || [];
+  const loading = busQuery.loading;
+  const error = busQuery.error?.response?.status === 404 ? "not-found" : !bus && busQuery.isError ? "error" : null;
+  const [socketConnected, setSocketConnected] = useState(false);
+  const loadBus = () => { busQuery.refetch(); etaQuery.refetch(); routeQuery.refetch(); stopsQuery.refetch(); };
 
   useEffect(() => {
     if (busId) socket.emit("watchBus", busId);
   }, [busId, socket]);
 
   useEffect(() => {
-    const handleConnect = () => setSocketConnected(true);
+    const handleConnect = () => { socket.emit("watchBus", busId); setSocketConnected(true); };
+    if (socket.connected) handleConnect();
     const handleDisconnect = () => setSocketConnected(false);
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
@@ -110,19 +94,21 @@ export default function BusDetailsPage({ busId }) {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
     };
-  }, [socket]);
+  }, [socket, busId]);
 
-  const liveBus = useMemo(() => {
+  const liveBus = (() => {
     if (!bus) return null;
     const update = liveUpdates.find((item) => (item.id || item._id || item.busId)?.toString() === busId.toString());
-    return mergeUpdate(bus, update);
-  }, [bus, busId, liveUpdates]);
+    const current = mergeUpdate(bus, update);
+    return !online || !connected || busQuery.isError || busQuery.isStale ? { ...current, availableSeats: null, occupancy: null, eta: null, nextStop: null, position: null } : current;
+  })();
 
   const direction = getBusDirection(liveBus);
   const stops = getStopsInDirection(storedStops, direction);
   const stopPositions = stops.filter((stop) => stop.latitude != null && stop.longitude != null).map((stop) => [stop.latitude, stop.longitude]);
   const busPosition = liveBus?.position;
-  const mapPositions = busPosition ? [...stopPositions, busPosition] : stopPositions;
+  const road = route?.geometry?.[direction === "return" ? "return" : "outbound"] || [];
+  const mapPositions = busPosition ? [...road, busPosition] : road;
   const directionLabel = getDirectionLabel(route, direction);
   const nextStopId = (liveBus?.nextStopId || eta?.nextStop?._id)?.toString();
   const routeId = liveBus?.route?._id || liveBus?.route || route?._id;
@@ -132,7 +118,7 @@ export default function BusDetailsPage({ busId }) {
   const lastUpdated = liveBus?.lastLocationUpdate ? new Date(liveBus.lastLocationUpdate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null;
   const operating = liveBus?.status === "active";
 
-  if (loading && !bus) return <div className="min-h-screen bg-[var(--background)]"><Navbar /><main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><div className="grid min-h-64 place-items-center"><LoadingSpinner label="Loading bus details..." /></div></main><Footer /></div>;
+  if (loading && !bus) return <div className="min-h-screen bg-[var(--background)]"><Navbar /><main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"><BusDetailsSkeleton /></main><Footer /></div>;
   if (error === "not-found") return <NotFoundState />;
   if (error || !liveBus) return <ErrorStatePage onRetry={loadBus} />;
 
@@ -141,11 +127,11 @@ export default function BusDetailsPage({ busId }) {
       <div className="flex min-w-0 items-end gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary-ink)]" aria-hidden="true"><BusFront size={22} strokeWidth={2.25} /></span><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--primary-ink)]">{routeLabel} - {routeName}</p><h1 className="mt-1 break-words text-3xl font-extrabold tracking-tight text-[var(--foreground)] sm:text-4xl">{liveBus.busNumber}</h1><div className="mt-2"><Badge tone={operating ? "success" : "neutral"}>{operating ? "Currently operating" : "Not operating"}</Badge></div></div></div>
       <Link href="/live-map" aria-label="Back to live buses" className="absolute right-4 top-4 inline-grid h-9 w-9 place-items-center rounded-xl border border-[var(--border)] bg-white text-[var(--primary-ink)] hover:border-[var(--primary)]"><ArrowLeft size={17} /></Link>
     </div>
-    <header className="mt-2 flex flex-col justify-between gap-4 lg:flex-row lg:items-center"><div /><Link href={routeId ? `/routes/${routeId}` : "/routes"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-white px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"><RouteIcon size={16} /> View full route</Link></header>
+    <CacheStatus query={busQuery.data ? busQuery : metadataQuery} /><header className="mt-2 flex flex-col justify-between gap-4 lg:flex-row lg:items-center"><div /><Link href={routeId ? `/routes/${routeId}` : "/routes"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-white px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"><RouteIcon size={16} /> View full route</Link></header>
 
-      {operating ? <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"><StatusCard label="Current status" value="Currently operating" icon={BusFront} /><StatusCard label="Direction" value={directionLabel} icon={RouteIcon} /><StatusCard label="ETA" value={liveBus.eta || "Unavailable"} icon={Clock3} /><StatusCard label="Next stop" value={liveBus.nextStop || "Unavailable"} icon={MapPin} /><StatusCard label="Seat availability" value={occupancy || (liveBus.availableSeats != null ? liveBus.availableSeats + " available" : "Unavailable")} icon={Users} /></section> : <Card className="mt-6 p-5"><p className="font-bold">This bus is not currently operating.</p><p className="mt-1 text-sm text-[var(--muted)]">Live location, arrival, next stop, and seat information will appear when a driver starts a shift.</p></Card>}
+      {operating ? <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"><StatusCard label="Current status" value="Currently operating" icon={BusFront} /><StatusCard label="Direction" value={directionLabel} icon={RouteIcon} /><StatusCard label="ETA" value={liveBus.eta || "Unavailable"} icon={Clock3} /><StatusCard label="Next stop" value={liveBus.nextStop || "Unavailable"} icon={MapPin} /><StatusCard label="Seat availability" value={occupancy || (liveBus.availableSeats != null ? liveBus.availableSeats + " available" : "Unavailable")} icon={Users} /></section> : <Card className="mt-6 p-5"><p className="font-bold">{busData?.isOfflineCache ? "Saved bus information" : "This bus is not currently operating."}</p><p className="mt-1 text-sm text-[var(--muted)]">Live location, arrival and seat information require a current connection and an active shift.</p></Card>}
 
-      {operating && (<section className="relative mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-1 shadow-[0_14px_36px_rgba(15,23,42,0.08)]"><ClientTransitMap center={busPosition || stopPositions[0] || [31.4187, 73.0791]} zoom={14} className="h-[min(64vh,590px)] min-h-[420px] rounded-xl"><MapViewport positions={mapPositions.length ? mapPositions : [[31.4187, 73.0791]]} focusKey={`${busId}-${stops.length}`} /><RoutePolyline positions={stopPositions} color="var(--primary-dark)" />{stops.filter((stop) => stop.latitude != null && stop.longitude != null).map((stop) => <StopMarker key={stop._id} position={[stop.latitude, stop.longitude]} stop={stop} />)}{busPosition && <BusMarker position={busPosition} bus={liveBus} /> }<MapControls onShowAll={(map) => mapPositions.length && map.fitBounds(mapPositions, { padding: [32, 32], maxZoom: 15 })} /></ClientTransitMap><div className="pointer-events-none absolute bottom-5 left-5 z-[400] rounded-xl border border-white/70 bg-white/95 px-4 py-3 shadow-lg backdrop-blur"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-[var(--success)]" : "bg-[var(--muted)]"}`} /><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Live location</p></div><p className="mt-1 text-sm font-bold text-[var(--foreground)]">{socketConnected ? (lastUpdated ? `Updated ${lastUpdated}` : "Live") : "Last update unavailable"}</p></div></section>)}
+      {operating && (<section className="relative mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] p-1 shadow-[0_14px_36px_rgba(15,23,42,0.08)]"><ClientTransitMap center={busPosition || stopPositions[0] || [31.4187, 73.0791]} zoom={14} className="h-[min(64vh,590px)] min-h-[420px] rounded-xl"><MapViewport positions={mapPositions.length ? mapPositions : [[31.4187, 73.0791]]} focusKey={`${busId}-${stops.length}`} /><RoutePolyline positions={road} color="var(--primary-dark)" />{stops.filter((stop) => stop.latitude != null && stop.longitude != null).map((stop) => <StopMarker key={stop._id} position={[stop.latitude, stop.longitude]} stop={stop} />)}{busPosition && <BusMarker position={busPosition} bus={liveBus} /> }<MapControls onShowAll={(map) => mapPositions.length && map.fitBounds(mapPositions, { padding: [32, 32], maxZoom: 15 })} /></ClientTransitMap><div className="pointer-events-none absolute bottom-5 left-5 z-[400] rounded-xl border border-white/70 bg-white/95 px-4 py-3 shadow-lg backdrop-blur"><div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-[var(--success)]" : "bg-[var(--muted)]"}`} /><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Live location</p></div><p className="mt-1 text-sm font-bold text-[var(--foreground)]">{socketConnected ? (lastUpdated ? `Updated ${lastUpdated}` : "Live") : "Last update unavailable"}</p></div></section>)}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">{operating && <div className="grid gap-6"><Card className="p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary-ink)]"><MapPin size={18} /></span><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Next stop</p><h2 className="mt-1 text-xl font-bold text-[var(--foreground)]">{liveBus.nextStop || "Not available"}</h2><div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 text-sm sm:grid-cols-2"><div><p className="text-[var(--muted)]">ETA</p><p className="mt-1 font-semibold text-[var(--foreground)]">{liveBus.eta || "Unavailable"}</p></div>{liveBus.distanceKm != null && <div><p className="text-[var(--muted)]">Distance</p><p className="mt-1 font-semibold text-[var(--foreground)]">{liveBus.distanceKm} km</p></div>}</div></div></div></Card><UpcomingStops stops={stops} nextStopId={nextStopId} /></div>}<div className="grid gap-6"><Card className="p-5"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Service information</p><h2 className="mt-1 text-xl font-bold text-[var(--foreground)]">Current Route</h2></div><Badge tone="success">{routeLabel}</Badge></div><h3 className="mt-4 font-semibold text-[var(--foreground)]">{routeName}</h3><div className="mt-4 grid gap-2 text-sm text-[var(--muted)]"><span>{route?.startPoint || "Starting point unavailable"}</span><span className="ml-1 h-3 border-l border-dashed border-[var(--border)]" /><span>{route?.endPoint || "Destination unavailable"}</span></div>{routeId && <Link href={`/routes/${routeId}`} className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary-ink)] hover:text-[var(--primary-ink)]">View full route <ArrowRight size={15} /></Link>}</Card><Card className="p-5"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Bus details</p><h2 className="mt-1 text-xl font-bold text-[var(--foreground)]">{liveBus.busNumber}</h2><dl className="mt-5 grid gap-3 border-t border-[var(--border)] pt-4 text-sm"><DetailRow label="Route" value={routeLabel} />{liveBus.capacity != null && <DetailRow label="Capacity" value={`${liveBus.capacity} seats`} />}{operating && liveBus.availableSeats != null && <DetailRow label="Seats available" value={liveBus.availableSeats} />}{liveBus.driver?.name && <DetailRow label="Driver" value={liveBus.driver.name} />}</dl></Card></div></div></main><Footer /></div>;
 }
