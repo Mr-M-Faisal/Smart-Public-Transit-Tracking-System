@@ -1280,8 +1280,8 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
   border-radius: 1rem;
   background: var(--premium-card-background, linear-gradient(145deg, rgba(255, 255, 255, .34), transparent 62%), var(--glass-card)) !important;
   box-shadow: var(--glass-card-shadow) !important;
-  backdrop-filter: saturate(128%) blur(16px);
   -webkit-backdrop-filter: saturate(128%) blur(16px);
+  backdrop-filter: saturate(128%) blur(16px);
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms cubic-bezier(.2, .8, .2, 1), background-color 220ms ease;
 }
 
@@ -1293,16 +1293,16 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 .premium-card.premium-card--stat {
   background: linear-gradient(145deg, rgba(255, 255, 255, .48), transparent 70%), var(--glass-card-strong) !important;
   box-shadow: 0 10px 28px rgba(11, 50, 104, .075), inset 0 1px rgba(255, 255, 255, .82) !important;
-  backdrop-filter: saturate(115%) blur(10px);
   -webkit-backdrop-filter: saturate(115%) blur(10px);
+  backdrop-filter: saturate(115%) blur(10px);
 }
 
 .premium-card.premium-card--operational {
   background: var(--glass-card-operational) !important;
   border-color: color-mix(in srgb, var(--glass-card-border) 72%, var(--border)) !important;
   box-shadow: 0 12px 32px rgba(11, 50, 104, .075), inset 0 1px rgba(255, 255, 255, .82) !important;
-  backdrop-filter: saturate(112%) blur(9px);
   -webkit-backdrop-filter: saturate(112%) blur(9px);
+  backdrop-filter: saturate(112%) blur(9px);
 }
 
 .premium-card--imagery {
@@ -1398,8 +1398,8 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 
 @media (max-width: 767px) {
   .premium-card {
-    backdrop-filter: saturate(118%) blur(10px);
     -webkit-backdrop-filter: saturate(118%) blur(10px);
+    backdrop-filter: saturate(118%) blur(10px);
   }
 
   .card-backdrop__image {
@@ -1614,3 +1614,85 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 @media (min-width: 1200px) {
   .app-frame { --app-sidebar-width: 230px; }
 }
+
+/* Motion budget: solid content surfaces, glass only on compact chrome. */
+:root { --ui-motion: 180ms; --ui-blur: 8px; }
+.ui-card, .premium-card, .profile-card, .driver-section-note,
+.driver-overview-actions a {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.ui-card:not(.premium-card--imagery):not(.home-safety-card),
+.premium-card:not(.premium-card--imagery):not(.home-safety-card) {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+.app-header, .public-header, .app-sidebar, .app-account-menu,
+.app-notification-panel, .home-search-card, .map-control-button {
+  -webkit-backdrop-filter: blur(var(--ui-blur));
+  backdrop-filter: blur(var(--ui-blur));
+  background-color: color-mix(in srgb, var(--card) 94%, transparent);
+  transition: background-color var(--ui-motion) ease, border-color var(--ui-motion) ease, color var(--ui-motion) ease;
+}
+.app-sidebar { background: color-mix(in srgb, var(--card) 94%, transparent); }
+.app-sidebar .app-nav-link, .app-sidebar .app-nav-link svg,
+.app-sidebar .app-nav-link:hover, .app-sidebar .app-nav-link:active {
+  transform: none;
+}
+/* No animated page wrappers or transformed ancestors around Leaflet. */
+.app-content > div > main, .public-shell > main, .profile-page main,
+.live-transit-value, [data-home-reveal], .home-hero-content, .home-hero-media {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+*:has(> .leaflet-container), .ui-card:has(.leaflet-container),
+.premium-card:has(.leaflet-container), main:has(.leaflet-container) {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.route-card-status.is-active > span { animation: none; }
+.booking-progress__marker, .booking-progress__label, .booking-progress__line,
+.seat-position, .theme-choice, .settings-section, .settings-action-link,
+.settings-data-saver button {
+  transition: color var(--ui-motion) ease, background-color var(--ui-motion) ease,
+    border-color var(--ui-motion) ease, box-shadow var(--ui-motion) ease;
+}
+.seat-position[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--primary-soft-strong); }
+.settings-action-link:hover { color: var(--primary); background-color: var(--primary-soft); }
+.ui-button:disabled, .ui-button[aria-busy="true"] { transform: none; box-shadow: none; }
+@keyframes ui-dialog-enter {
+  from { opacity: .85; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.settings-dialog, .app-logout-dialog { animation: ui-dialog-enter 180ms ease-out; }
+@media (hover: hover) and (pointer: fine) {
+  .settings-section:hover { border-color: var(--primary-border) !important; }
+  .app-experience--admin .premium-card:hover,
+  .app-experience--driver .premium-card:hover { transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within { scroll-behavior: smooth; }
+}
+/* Restrict decorative motion without touching splash or live map markers. */
+:root[data-data-saver="on"], :root[data-light-effects="true"] { --ui-motion: 0ms; --ui-blur: 0px; }
+:root[data-data-saver="on"] :is(.app-experience, .public-shell, .home-page, .profile-page),
+:root[data-light-effects="true"] :is(.app-experience, .public-shell, .home-page, .profile-page) { scroll-behavior: auto; }
+:root:is([data-data-saver="on"], [data-light-effects="true"]) :is(.ui-card, .premium-card, .ui-button, .app-nav-link, .theme-choice, .seat-position, .settings-dialog, .app-logout-dialog, .app-account-menu, .app-notification-panel, .app-driver-more-menu, .card-backdrop__image, .animate-pulse, .booking-confirmation-skeleton span) {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+:root:is([data-data-saver="on"], [data-light-effects="true"]) :is(.app-header, .public-header, .app-sidebar, .app-account-menu, .app-notification-panel, .home-search-card, .app-bottom-nav, .public-bottom-nav, .app-icon-button, .app-avatar, .theme-onboarding, .app-dialog-backdrop, .profile-modal, .map-control-button) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+@media (max-width: 767px), (prefers-reduced-motion: reduce) { :root { --ui-blur: 0px; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --ui-motion: 0ms; }
+  .settings-dialog, .app-logout-dialog { animation: none; }
+  .ui-button:hover:not(:disabled), .ui-button:active:not(:disabled) { transform: none; }
+}
+:root[data-data-saver="on"] { scroll-behavior: auto !important; }
