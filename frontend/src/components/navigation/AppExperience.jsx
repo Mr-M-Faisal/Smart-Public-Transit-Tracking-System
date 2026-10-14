@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "../common/SmartLink";
-import { DataSaverControl } from "../common/DataSaverControl";
 import { usePathname, useRouter } from "next/navigation";
 import { BusFront, Bell, ChartNoAxesCombined, History, House, LogOut, MapPinned, MoreHorizontal, Route, Settings, Ticket, UserRound, Users, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
@@ -311,7 +310,7 @@ export function AppExperience({ children }) {
           </div>
           <div className="app-account" ref={accountRef}>
             <button type="button" className="app-avatar" aria-label="Open profile menu" aria-expanded={accountOpen} onClick={() => { setAccountOpen((open) => !open); closeNotifications(); }}>{initials}</button>
-            {accountOpen && <div className="app-account-menu" role="menu"><DataSaverControl /><div className="app-account-summary"><strong>{user.name}</strong><span>{user.email}</span></div><Link href="/profile" role="menuitem" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setConfirmLogout(true); }}><LogOut size={17} /> Log out</button></div>}
+            {accountOpen && <div className="app-account-menu" role="menu"><div className="app-account-summary"><strong>{user.name}</strong><span>{user.email}</span></div><Link href="/profile" role="menuitem" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setConfirmLogout(true); }}><LogOut size={17} /> Log out</button></div>}
           </div>
         </div>
       </div>
