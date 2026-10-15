@@ -19,7 +19,6 @@ import { Button } from "../common/Button";
 import { Card } from "../common/Card";
 import { CardBackdrop } from "../common/CardBackdrop";
 import { ErrorState } from "../common/ErrorState";
-import { LoadingSpinner } from "../common/LoadingSpinner";
 import { bookingService } from "../../services/bookingService";
 import { busService } from "../../services/busService";
 import { routeService } from "../../services/routeService";
@@ -111,9 +110,7 @@ export default function ConfirmationPage({ bookingId }) {
   if (authLoading || (isAuthenticated && loading && !booking)) {
     return (
       <PageShell>
-        <div className="grid min-h-96 place-items-center">
-          <LoadingSpinner label="Loading booking confirmation..." />
-        </div>
+        <ConfirmationSkeleton />
       </PageShell>
     );
   }
@@ -274,6 +271,10 @@ function PageShell({ children }) {
       <Footer />
     </div>
   );
+}
+
+function ConfirmationSkeleton() {
+  return <div className="booking-confirmation-skeleton" role="status" aria-label="Loading booking confirmation"><span /><span /><span /><span /></div>;
 }
 
 function DetailRow({ label, value }) {

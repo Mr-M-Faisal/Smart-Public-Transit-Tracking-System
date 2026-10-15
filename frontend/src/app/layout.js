@@ -3,6 +3,7 @@ import "./globals.css";
 import { TransitProvider } from "../components/providers/TransitProvider";
 import { AppExperience } from "../components/navigation/AppExperience";
 import { PwaSupport } from "../components/pwa/PwaSupport";
+import { VisualPreferences } from "../components/common/VisualPreferences";
 import { ThemeOnboarding } from "../components/common/ThemePicker";
 
 const geistSans = Geist({
@@ -41,7 +42,7 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head><script dangerouslySetInnerHTML={{ __html: '(function(){try{if(localStorage.getItem("smart-safar-theme-v1")==="orange")document.documentElement.dataset.theme="orange";var m=localStorage.getItem("smart-safar-data-saver")||"automatic",c=navigator.connection;document.documentElement.dataset.dataSaver=(m==="on"||(m!=="off"&&c&&(c.saveData||["slow-2g","2g","3g"].includes(c.effectiveType))))?"on":"off"}catch(e){}})()' }} /></head>
-      <body className="min-h-full flex flex-col"><TransitProvider><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
+      <body className="min-h-full flex flex-col"><TransitProvider><VisualPreferences /><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
     </html>
   );
 }

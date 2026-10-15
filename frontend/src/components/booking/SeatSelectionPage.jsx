@@ -327,7 +327,7 @@ export default function SeatSelectionPage({
         )}
       </Card>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] lg:items-start">
+      <div className="booking-layout mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.9fr)] lg:items-start">
         <div className="grid min-w-0 gap-6">
           <Card className="p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
@@ -471,7 +471,7 @@ export default function SeatSelectionPage({
           </Card>
         </div>
 
-        <Card className="p-5 sm:p-6 lg:sticky lg:top-24">
+        <Card className="booking-summary p-5 sm:p-6 lg:sticky lg:top-24">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary-ink)]">
               <BusFront size={19} />
@@ -551,7 +551,7 @@ function PageShell({ children }) {
 }
 
 function SeatSelectionSkeleton() {
-  return <div className="grid animate-pulse gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,.8fr)] lg:items-start" role="status" aria-label="Loading seat availability">
+  return <div className="booking-layout grid animate-pulse gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.9fr)] lg:items-start" role="status" aria-label="Loading seat availability">
     <Card treatment="operational" className="p-5 sm:p-6"><span className="block h-5 w-40 rounded bg-[var(--skeleton)]" /><span className="mt-3 block h-4 w-3/5 rounded bg-[var(--skeleton)]" /><div className="mt-6 grid grid-cols-4 gap-3 rounded-[1.75rem] border border-[var(--primary-border)] p-5 sm:grid-cols-5">{Array.from({ length: 20 }, (_, index) => <span key={index} className="aspect-square rounded-lg bg-[var(--skeleton)]" />)}</div></Card>
     <Card treatment="stat" className="space-y-4 p-5"><span className="block h-5 w-32 rounded bg-[var(--skeleton)]" /><span className="block h-4 w-full rounded bg-[var(--skeleton)]" /><span className="block h-4 w-4/5 rounded bg-[var(--skeleton)]" /><span className="block h-12 w-full rounded-xl bg-[var(--skeleton)]" /></Card>
   </div>;

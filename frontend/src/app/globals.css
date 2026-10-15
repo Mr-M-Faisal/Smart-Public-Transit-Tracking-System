@@ -1280,8 +1280,8 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
   border-radius: 1rem;
   background: var(--premium-card-background, linear-gradient(145deg, rgba(255, 255, 255, .34), transparent 62%), var(--glass-card)) !important;
   box-shadow: var(--glass-card-shadow) !important;
-  backdrop-filter: saturate(128%) blur(16px);
   -webkit-backdrop-filter: saturate(128%) blur(16px);
+  backdrop-filter: saturate(128%) blur(16px);
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms cubic-bezier(.2, .8, .2, 1), background-color 220ms ease;
 }
 
@@ -1293,16 +1293,16 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 .premium-card.premium-card--stat {
   background: linear-gradient(145deg, rgba(255, 255, 255, .48), transparent 70%), var(--glass-card-strong) !important;
   box-shadow: 0 10px 28px rgba(11, 50, 104, .075), inset 0 1px rgba(255, 255, 255, .82) !important;
-  backdrop-filter: saturate(115%) blur(10px);
   -webkit-backdrop-filter: saturate(115%) blur(10px);
+  backdrop-filter: saturate(115%) blur(10px);
 }
 
 .premium-card.premium-card--operational {
   background: var(--glass-card-operational) !important;
   border-color: color-mix(in srgb, var(--glass-card-border) 72%, var(--border)) !important;
   box-shadow: 0 12px 32px rgba(11, 50, 104, .075), inset 0 1px rgba(255, 255, 255, .82) !important;
-  backdrop-filter: saturate(112%) blur(9px);
   -webkit-backdrop-filter: saturate(112%) blur(9px);
+  backdrop-filter: saturate(112%) blur(9px);
 }
 
 .premium-card--imagery {
@@ -1398,8 +1398,8 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 
 @media (max-width: 767px) {
   .premium-card {
-    backdrop-filter: saturate(118%) blur(10px);
     -webkit-backdrop-filter: saturate(118%) blur(10px);
+    backdrop-filter: saturate(118%) blur(10px);
   }
 
   .card-backdrop__image {
@@ -1485,3 +1485,214 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
 @media (max-width: 640px) { :root { --clocktower-image: url("/faisalabad-clocktower-mobile.webp"); } }
 :root[data-data-saver="on"] { --clocktower-image: none; --transit-hero-image: none; }
 :root[data-data-saver="on"] [data-home-reveal] { animation: none; transition: none; opacity: 1; transform: none; }
+
+/* Settings, search, and booking refinements. */
+.field-input--leading-icon { padding-left: 3rem; }
+.field-input--trailing-control { padding-right: 3.5rem; }
+
+.home-search-card { background: var(--card) !important; }
+.home-search-card label { background: transparent; }
+.home-search-field,
+.route-search-field {
+  display: flex;
+  min-height: 3rem;
+  width: 100%;
+  align-items: center;
+  gap: .75rem;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  background: var(--surface-subtle);
+  padding: 0 .875rem;
+  color: var(--foreground);
+}
+.home-search-field:focus-within,
+.route-search-field:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.home-search-field input,
+.route-search-field input {
+  min-width: 0;
+  flex: 1;
+  outline: 0;
+  background: transparent !important;
+  color: var(--foreground);
+}
+
+.cache-safety-notice {
+  margin: .75rem 0;
+  border: 1px solid var(--warning-border);
+  border-radius: .75rem;
+  background: var(--warning-soft);
+  padding: .625rem .75rem;
+  color: var(--warning);
+  font-size: .75rem;
+  line-height: 1.25rem;
+}
+
+.settings-page { max-width: 1080px; margin: 0 auto; }
+.settings-page__header { max-width: 680px; margin-bottom: 2rem; }
+.settings-page__header h1 { margin-top: .4rem; color: var(--foreground); font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -.04em; }
+.settings-page__header > p:last-child { margin-top: .65rem; color: var(--muted); line-height: 1.65; }
+.settings-page__grid { display: grid; gap: 1.25rem; }
+.settings-section { min-width: 0; }
+.settings-section__icon { display: grid; width: 2.5rem; height: 2.5rem; flex: 0 0 auto; place-items: center; border-radius: .8rem; background: var(--primary-soft); color: var(--primary-ink); }
+.settings-section p { color: var(--primary-ink); font-size: .7rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.settings-section h2 { margin-top: .2rem; color: var(--foreground); font-size: 1.1rem; font-weight: 800; }
+.settings-section p + h2 + span { display: block; margin-top: .3rem; color: var(--muted); font-size: .875rem; line-height: 1.45; }
+.settings-profile-row { display: flex; align-items: center; gap: .875rem; border-radius: .9rem; background: var(--surface-subtle); padding: .875rem; }
+.settings-avatar { display: grid; width: 2.75rem; height: 2.75rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--primary); color: var(--primary-contrast); font-size: .8rem; font-weight: 800; }
+.settings-profile-row strong, .settings-profile-row span, .settings-profile-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-profile-row strong { color: var(--foreground); font-size: .9rem; }
+.settings-profile-row small, .settings-profile-row div > span { margin-top: .15rem; color: var(--muted); font-size: .75rem; }
+.settings-inline-link, .settings-action-link { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .45rem; color: var(--primary-ink); font-size: .825rem; font-weight: 800; }
+.settings-inline-link { margin-left: auto; white-space: nowrap; }
+.settings-action-link { width: 100%; justify-content: space-between; border-top: 1px solid var(--border); padding: .7rem 0; }
+.settings-action-link:last-child { padding-bottom: 0; }
+.settings-data-saver { display: grid; gap: .625rem; }
+.settings-data-saver button { display: flex; width: 100%; min-height: 4.4rem; align-items: center; gap: .75rem; border: 1px solid var(--border); border-radius: .85rem; background: var(--surface-subtle); padding: .7rem .8rem; text-align: left; transition: border-color .16s ease, background .16s ease; }
+.settings-data-saver button:hover, .settings-data-saver button:focus-visible { border-color: var(--primary); outline: none; }
+.settings-data-saver button.is-selected { border-color: var(--primary); background: var(--primary-soft); }
+.settings-data-saver__mark { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--card); color: var(--primary-ink); }
+.settings-data-saver strong, .settings-data-saver small { display: block; }
+.settings-data-saver strong { color: var(--foreground); font-size: .875rem; }
+.settings-data-saver small { margin-top: .12rem; color: var(--muted); font-size: .75rem; line-height: 1.3; }
+.settings-dialog { width: min(100%, 400px); border: 1px solid var(--border); border-radius: 1.25rem; background: var(--card); padding: 1.5rem; box-shadow: var(--shadow-float); text-align: center; }
+.settings-dialog h2 { margin-top: .75rem; color: var(--foreground); font-size: 1.25rem; font-weight: 800; }
+.settings-dialog p { margin-top: .5rem; color: var(--muted); font-size: .875rem; line-height: 1.5; }
+.settings-dialog > div { display: flex; justify-content: center; gap: .75rem; margin-top: 1.25rem; }
+
+.booking-progress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 38rem; margin-top: 1.5rem; }
+.booking-progress li { position: relative; display: grid; justify-items: center; gap: .4rem; color: var(--muted); font-size: .72rem; font-weight: 700; text-align: center; }
+.booking-progress__marker { position: relative; z-index: 1; display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--card); color: var(--muted); }
+.booking-progress__line { position: absolute; top: 1rem; left: calc(50% + 1rem); width: calc(100% - 2rem); height: 2px; background: var(--border); }
+.booking-progress .is-current, .booking-progress .is-complete { color: var(--foreground); }
+.booking-progress .is-current .booking-progress__marker { border-color: var(--primary); background: var(--primary); color: var(--primary-contrast); }
+.booking-progress .is-complete .booking-progress__marker { border-color: var(--success); background: var(--success-soft); color: var(--success); }
+.booking-progress .is-complete .booking-progress__line { background: var(--success); }
+.booking-summary { background: var(--card) !important; }
+.booking-confirmation-skeleton { display: grid; gap: 1rem; max-width: 56rem; margin: 2rem auto; }
+.booking-confirmation-skeleton span { display: block; min-height: 4rem; border-radius: 1rem; background: var(--skeleton); animation: pulse 1.5s ease-in-out infinite; }
+.booking-confirmation-skeleton span:first-child { min-height: 13rem; }
+.booking-confirmation-skeleton span:last-child { min-height: 20rem; }
+
+@media (min-width: 1024px) { .settings-page__grid { grid-template-columns: minmax(0, 1.55fr) minmax(270px, .85fr); } }
+@media (max-width: 639px) {
+  .settings-page__header { margin-bottom: 1.4rem; }
+  .settings-profile-row { align-items: flex-start; flex-wrap: wrap; }
+  .settings-inline-link { width: 100%; margin-left: 3.625rem; }
+  .booking-progress { margin-top: 1.25rem; }
+  .booking-progress__label { font-size: .67rem; }
+}
+@media (prefers-reduced-motion: reduce) { .settings-data-saver button { transition: none; } }
+
+
+/* The desktop rail is deliberately fixed: scrolling belongs to the content
+   column, while any overflow from role-specific navigation stays inside it. */
+@media (min-width: 768px) {
+  .app-frame {
+    --app-sidebar-width: 205px;
+    grid-template-columns: var(--app-sidebar-width) minmax(0, 1fr);
+  }
+  .app-sidebar {
+    position: fixed;
+    top: 66px;
+    left: max(0px, calc((100vw - 1600px) / 2));
+    width: var(--app-sidebar-width);
+    block-size: calc(100dvh - 66px);
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .app-content {
+    grid-column: 2;
+    min-width: 0;
+  }
+}
+@media (min-width: 1200px) {
+  .app-frame { --app-sidebar-width: 230px; }
+}
+
+/* Motion budget: solid content surfaces, glass only on compact chrome. */
+:root { --ui-motion: 180ms; --ui-blur: 8px; }
+.ui-card, .premium-card, .profile-card, .driver-section-note,
+.driver-overview-actions a {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.ui-card:not(.premium-card--imagery):not(.home-safety-card),
+.premium-card:not(.premium-card--imagery):not(.home-safety-card) {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+.app-header, .public-header, .app-sidebar, .app-account-menu,
+.app-notification-panel, .home-search-card, .map-control-button {
+  -webkit-backdrop-filter: blur(var(--ui-blur));
+  backdrop-filter: blur(var(--ui-blur));
+  background-color: color-mix(in srgb, var(--card) 94%, transparent);
+  transition: background-color var(--ui-motion) ease, border-color var(--ui-motion) ease, color var(--ui-motion) ease;
+}
+.app-sidebar { background: color-mix(in srgb, var(--card) 94%, transparent); }
+.app-sidebar .app-nav-link, .app-sidebar .app-nav-link svg,
+.app-sidebar .app-nav-link:hover, .app-sidebar .app-nav-link:active {
+  transform: none;
+}
+/* No animated page wrappers or transformed ancestors around Leaflet. */
+.app-content > div > main, .public-shell > main, .profile-page main,
+.live-transit-value, [data-home-reveal], .home-hero-content, .home-hero-media {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+*:has(> .leaflet-container), .ui-card:has(.leaflet-container),
+.premium-card:has(.leaflet-container), main:has(.leaflet-container) {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.route-card-status.is-active > span { animation: none; }
+.booking-progress__marker, .booking-progress__label, .booking-progress__line,
+.seat-position, .theme-choice, .settings-section, .settings-action-link,
+.settings-data-saver button {
+  transition: color var(--ui-motion) ease, background-color var(--ui-motion) ease,
+    border-color var(--ui-motion) ease, box-shadow var(--ui-motion) ease;
+}
+.seat-position[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--primary-soft-strong); }
+.settings-action-link:hover { color: var(--primary); background-color: var(--primary-soft); }
+.ui-button:disabled, .ui-button[aria-busy="true"] { transform: none; box-shadow: none; }
+@keyframes ui-dialog-enter {
+  from { opacity: .85; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.settings-dialog, .app-logout-dialog { animation: ui-dialog-enter 180ms ease-out; }
+@media (hover: hover) and (pointer: fine) {
+  .settings-section:hover { border-color: var(--primary-border) !important; }
+  .app-experience--admin .premium-card:hover,
+  .app-experience--driver .premium-card:hover { transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within { scroll-behavior: smooth; }
+}
+/* Restrict decorative motion without touching splash or live map markers. */
+:root[data-data-saver="on"], :root[data-light-effects="true"] { --ui-motion: 0ms; --ui-blur: 0px; }
+:root[data-data-saver="on"] :is(.app-experience, .public-shell, .home-page, .profile-page),
+:root[data-light-effects="true"] :is(.app-experience, .public-shell, .home-page, .profile-page) { scroll-behavior: auto; }
+:root:is([data-data-saver="on"], [data-light-effects="true"]) :is(.ui-card, .premium-card, .ui-button, .app-nav-link, .theme-choice, .seat-position, .settings-dialog, .app-logout-dialog, .app-account-menu, .app-notification-panel, .app-driver-more-menu, .card-backdrop__image, .animate-pulse, .booking-confirmation-skeleton span) {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+:root:is([data-data-saver="on"], [data-light-effects="true"]) :is(.app-header, .public-header, .app-sidebar, .app-account-menu, .app-notification-panel, .home-search-card, .app-bottom-nav, .public-bottom-nav, .app-icon-button, .app-avatar, .theme-onboarding, .app-dialog-backdrop, .profile-modal, .map-control-button) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+@media (max-width: 767px), (prefers-reduced-motion: reduce) { :root { --ui-blur: 0px; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --ui-motion: 0ms; }
+  .settings-dialog, .app-logout-dialog { animation: none; }
+  .ui-button:hover:not(:disabled), .ui-button:active:not(:disabled) { transform: none; }
+}
+:root[data-data-saver="on"] { scroll-behavior: auto !important; }

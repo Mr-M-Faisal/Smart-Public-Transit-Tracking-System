@@ -182,7 +182,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
         ) : (
           <form
             onSubmit={handleSubmit(continueToSeatSelection)}
-            className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] lg:items-start"
+            className="booking-layout mt-7 grid gap-6 lg:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.9fr)] lg:items-start"
           >
             <Card treatment="operational" className="p-5 sm:p-6">
               <div className="flex items-start gap-3">
@@ -294,7 +294,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
               </div>
             </Card>
 
-            <Card treatment="operational" className="p-5 sm:p-6 lg:sticky lg:top-24">
+            <Card treatment="operational" className="booking-summary p-5 sm:p-6 lg:sticky lg:top-24">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary-ink)]">
                   <BusFront size={19} />
@@ -363,7 +363,7 @@ function SummaryRow({ label, value }) {
 }
 
 function BookingOptionsSkeleton() {
-  return <div className="mt-8 grid animate-pulse gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] lg:items-start" role="status" aria-label="Loading booking options">
+  return <div className="booking-layout mt-7 grid animate-pulse gap-6 lg:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.9fr)] lg:items-start" role="status" aria-label="Loading booking options">
     <Card treatment="operational" className="space-y-5 p-5 sm:p-6"><span className="block h-5 w-36 rounded bg-[var(--skeleton)]" /><span className="block h-12 w-full rounded-xl bg-[var(--skeleton)]" /><span className="block h-12 w-full rounded-xl bg-[var(--skeleton)]" /><span className="block h-12 w-full rounded-xl bg-[var(--skeleton)]" /></Card>
     <Card treatment="stat" className="space-y-4 p-5"><span className="block h-5 w-28 rounded bg-[var(--skeleton)]" /><span className="block h-4 w-full rounded bg-[var(--skeleton)]" /><span className="block h-4 w-4/5 rounded bg-[var(--skeleton)]" /><span className="block h-12 w-full rounded-xl bg-[var(--skeleton)]" /></Card>
   </div>;
