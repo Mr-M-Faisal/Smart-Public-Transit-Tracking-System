@@ -3,7 +3,9 @@ import Image from "next/image";
 export function BrandMark({ size = 40, className = "", priority = false }) {
   return (
     <Image
-      src="/smart-transit-logo.svg"
+      src="/images/logo.png"
+      unoptimized
+      style={{ width: size, height: size, objectFit: "cover" }}
       width={size}
       height={size}
       alt=""

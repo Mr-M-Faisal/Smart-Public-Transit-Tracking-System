@@ -248,7 +248,7 @@ export default function MyTripsPage() {
       </div>
 
       {cancelError && (
-        <p role="alert" className="mt-4 rounded-xl bg-[#fde8e8] p-3 text-sm text-[var(--danger)]">
+        <p role="alert" className="mt-4 rounded-xl bg-[var(--danger-soft)] p-3 text-sm text-[var(--danger)]">
           {cancelError}
         </p>
       )}

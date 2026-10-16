@@ -1,19 +1,16 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { TransitProvider } from "../components/providers/TransitProvider";
 import { AppExperience } from "../components/navigation/AppExperience";
 import { PwaSupport } from "../components/pwa/PwaSupport";
 import { VisualPreferences } from "../components/common/VisualPreferences";
-import { ThemeOnboarding } from "../components/common/ThemePicker";
+import { AppearancePreference, ThemeOnboarding } from "../components/common/ThemePicker";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Arial", "sans-serif"],
 });
 
 export const metadata = {
@@ -30,7 +27,7 @@ export const metadata = {
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Smart Safar" },
 };
 
-export const viewport = { themeColor: "#0F5797", colorScheme: "light", viewportFit: "cover" };
+export const viewport = { themeColor: "#0F5797", colorScheme: "light dark", viewportFit: "cover" };
 
 export default function RootLayout({ children }) {
   return (
@@ -39,10 +36,10 @@ export default function RootLayout({ children }) {
       data-theme="blue"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${jakarta.variable} h-full antialiased`}
     >
-      <head><script dangerouslySetInnerHTML={{ __html: '(function(){try{if(localStorage.getItem("smart-safar-theme-v1")==="orange")document.documentElement.dataset.theme="orange";var m=localStorage.getItem("smart-safar-data-saver")||"automatic",c=navigator.connection;document.documentElement.dataset.dataSaver=(m==="on"||(m!=="off"&&c&&(c.saveData||["slow-2g","2g","3g"].includes(c.effectiveType))))?"on":"off"}catch(e){}})()' }} /></head>
-      <body className="min-h-full flex flex-col"><TransitProvider><VisualPreferences /><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
+      <head><script dangerouslySetInnerHTML={{ __html: '(function(){try{var d=document.documentElement,t=localStorage.getItem("smart-safar-theme-v1"),a=localStorage.getItem("smart-safar-appearance-v1")||"system",dark=a==="dark"||(a==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(t==="orange")d.dataset.theme="orange";d.dataset.appearancePreference=["light","dark","system"].includes(a)?a:"system";d.dataset.appearance=dark?"dark":"light";var m=localStorage.getItem("smart-safar-data-saver")||"automatic",c=navigator.connection;d.dataset.dataSaver=(m==="on"||(m!=="off"&&c&&(c.saveData||["slow-2g","2g","3g"].includes(c.effectiveType))))?"on":"off"}catch(e){}})()' }} /></head>
+      <body className="min-h-full flex flex-col"><TransitProvider><AppearancePreference /><VisualPreferences /><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
     </html>
   );
 }

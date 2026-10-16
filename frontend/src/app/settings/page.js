@@ -8,7 +8,7 @@ import { Footer } from "../../components/navigation/Footer";
 import { Card } from "../../components/common/Card";
 import { Button } from "../../components/common/Button";
 import { ProtectedPage } from "../../components/common/ProtectedPage";
-import { ThemeOptions, THEME_KEY, applyTheme } from "../../components/common/ThemePicker";
+import { AppearanceOptions, APPEARANCE_KEY, ThemeOptions, THEME_KEY, applyAppearance, applyTheme } from "../../components/common/ThemePicker";
 import { DataSaverOptions } from "../../components/common/DataSaverControl";
 import { clearAccessToken } from "../../lib/auth/token";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ export default function SettingsPage() {
 function SettingsContent({ user }) {
   const router = useRouter();
   const [theme, setTheme] = useState("blue");
+  const [appearance, setAppearance] = useState("system");
   const [confirmLogout, setConfirmLogout] = useState(false);
   const reportHref = user.role === "admin" ? "/admin/reports" : "/reports";
   const initials = user.name?.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "SS";
@@ -29,11 +30,20 @@ function SettingsContent({ user }) {
     try { const saved = window.localStorage.getItem(THEME_KEY); if (saved === "blue" || saved === "orange") selected = saved; } catch { /* Use the active theme. */ }
     queueMicrotask(() => setTheme(selected));
     const onTheme = (event) => setTheme(event.detail === "orange" ? "orange" : "blue");
+    let savedAppearance = "system";
+    try { const saved = window.localStorage.getItem(APPEARANCE_KEY); if (["light", "dark", "system"].includes(saved)) savedAppearance = saved; } catch {}
+    queueMicrotask(() => setAppearance(savedAppearance));
+    const onAppearance = (event) => setAppearance(["light", "dark", "system"].includes(event.detail) ? event.detail : "system");
     window.addEventListener("smart-safar-theme-change", onTheme);
-    return () => window.removeEventListener("smart-safar-theme-change", onTheme);
+    window.addEventListener("smart-safar-appearance-change", onAppearance);
+    return () => {
+      window.removeEventListener("smart-safar-theme-change", onTheme);
+      window.removeEventListener("smart-safar-appearance-change", onAppearance);
+    };
   }, []);
 
   function selectTheme(value) { applyTheme(value); setTheme(value); }
+  function selectAppearance(value) { applyAppearance(value); setAppearance(value); }
   function logout() { clearAccessToken(); router.replace("/"); }
 
   return <div className="settings-page">
@@ -45,8 +55,8 @@ function SettingsContent({ user }) {
           <div className="settings-profile-row"><span className="settings-avatar">{initials}</span><div className="min-w-0 flex-1"><strong>{user.name}</strong><span>{user.email}</span><small>{user.role ? `${user.role.charAt(0).toUpperCase()}${user.role.slice(1)} account` : "Smart Safar account"}</small></div><Link href="/profile" className="settings-inline-link">Edit profile <ArrowRight size={15} /></Link></div>
         </SettingsSection>
 
-        <SettingsSection icon={Palette} eyebrow="Appearance" title="Colour theme" description={`Currently using ${theme === "orange" ? "Orange" : "Blue"}. Changes apply immediately and stay saved on this device.`}>
-          <ThemeOptions selected={theme} onSelect={selectTheme} />
+        <SettingsSection icon={Palette} eyebrow="Appearance" title="Appearance & colour" description={`Using ${appearance === "system" ? "your device setting" : appearance} mode with the ${theme === "orange" ? "Orange" : "Blue"} accent. Changes apply immediately and stay saved on this device.`}>
+          <div className="settings-appearance-stack"><AppearanceOptions selected={appearance} onSelect={selectAppearance} /><ThemeOptions selected={theme} onSelect={selectTheme} /></div>
         </SettingsSection>
 
         <SettingsSection icon={SlidersHorizontal} eyebrow="Data Saver" title="Use less data when it matters" description="Data Saver only changes nonessential visuals and background work. Booking, GPS, security, and live updates remain available.">

@@ -90,7 +90,7 @@ function EditStopForm({ onClose, onUpdated, routes, stop }) {
         <input id="edit-stop-order" type="number" min="1" step="1" value={form.stopOrder} onChange={(event) => updateField("stopOrder", event.target.value)} disabled={submitting} className="field-input text-sm" required />
       </div>
       <StopLocationPicker idPrefix="edit-stop" position={position} onChange={selectPosition} disabled={submitting} />
-      {error && <p role="alert" className="rounded-lg bg-[#fde8e8] px-3 py-2 text-sm text-[var(--danger)]">{error}</p>}
+      {error && <p role="alert" className="rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p>}
       <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--border)] pt-4">
         <Button type="button" variant="secondary" onClick={close} disabled={submitting} className="min-h-12">Cancel</Button>
         <Button type="submit" disabled={submitting} className="min-h-12">{submitting ? "Saving..." : "Save Changes"}</Button>

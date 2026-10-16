@@ -312,7 +312,7 @@ export default function BookingPage({ initialBusId = "", initialRouteId = "" }) 
               </dl>
 
               {noEligibleBus && (
-                <div className="mt-5 rounded-xl border border-[#f4cccc] bg-[#fff8f8] p-3 text-sm text-[var(--danger)]">
+                <div className="mt-5 rounded-xl border border-[#f4cccc] bg-[var(--danger-soft)] p-3 text-sm text-[var(--danger)]">
                   No active bus is available for this route right now.
                 </div>
               )}

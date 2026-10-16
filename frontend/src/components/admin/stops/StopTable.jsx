@@ -81,7 +81,7 @@ export function StopTable({ stops, loading, onEdit, onDelete, onAddClick }) {
                       <button type="button" onClick={() => onEdit(stop)} className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary-ink)] transition" title="Edit stop" aria-label={`Edit ${stop.stopName}`}>
                         <Edit3 size={16} />
                       </button>
-                      <button type="button" onClick={() => onDelete(stop)} className="rounded-lg p-2 text-[var(--muted)] hover:bg-[#fde8e8] hover:text-[var(--danger)] transition" title="Delete stop" aria-label={`Delete ${stop.stopName}`}>
+                      <button type="button" onClick={() => onDelete(stop)} className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] transition" title="Delete stop" aria-label={`Delete ${stop.stopName}`}>
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -119,7 +119,7 @@ export function StopTable({ stops, loading, onEdit, onDelete, onAddClick }) {
                 <button type="button" onClick={() => onEdit(stop)} className="flex-1 min-h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] text-xs font-semibold text-[var(--primary-ink)] hover:bg-[var(--primary-soft)] transition">
                   <Edit3 size={13} /> Edit
                 </button>
-                <button type="button" onClick={() => onDelete(stop)} className="flex-1 min-h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#f4cccc] text-xs font-semibold text-[var(--danger)] hover:bg-[#fde8e8] transition">
+                <button type="button" onClick={() => onDelete(stop)} className="flex-1 min-h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#f4cccc] text-xs font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)] transition">
                   <Trash2 size={13} /> Delete
                 </button>
               </div>

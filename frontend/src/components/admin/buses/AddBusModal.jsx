@@ -105,7 +105,7 @@ export function AddBusModal({ isOpen, onClose, onCreated, routes = [] }) {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-[#f4cccc] bg-[#fff8f8] p-3 text-xs text-[var(--danger)]" role="alert">
+          <div className="mt-4 rounded-xl border border-[#f4cccc] bg-[var(--danger-soft)] p-3 text-xs text-[var(--danger)]" role="alert">
             {error}
           </div>
         )}
