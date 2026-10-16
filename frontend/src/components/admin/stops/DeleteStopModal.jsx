@@ -34,7 +34,7 @@ export function DeleteStopModal({ isOpen, onClose, onDeleted, stop }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4" role="dialog" aria-modal="true" aria-labelledby="delete-stop-title">
       <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-white p-6 text-center shadow-xl">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fde8e8] text-[var(--danger)]">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--danger-soft)] text-[var(--danger)]">
           <AlertTriangle size={24} />
         </div>
         <h2 id="delete-stop-title" className="mt-4 text-lg font-bold text-[var(--foreground)]">
@@ -45,7 +45,7 @@ export function DeleteStopModal({ isOpen, onClose, onDeleted, stop }) {
         </p>
 
         {error && (
-          <p className="mt-3 rounded-lg bg-[#fde8e8] px-3 py-2 text-xs font-medium text-[var(--danger)]">{error}</p>
+          <p className="mt-3 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-xs font-medium text-[var(--danger)]">{error}</p>
         )}
 
         <div className="mt-5 flex justify-center gap-2">

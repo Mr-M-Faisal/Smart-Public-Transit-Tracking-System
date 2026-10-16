@@ -175,7 +175,7 @@ export default function RouteManagementPage() {
     return (
       <PageShell>
         <Card treatment="operational" className="mx-auto max-w-lg p-8 text-center">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fde8e8] text-[var(--danger)]">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--danger-soft)] text-[var(--danger)]">
             <AlertTriangle size={26} />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">Admin Access Required</h1>
@@ -192,7 +192,7 @@ export default function RouteManagementPage() {
             <button
               type="button"
               onClick={() => { clearAccessToken(); router.replace("/login?redirect=/admin/routes"); }}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--border)] px-5 text-sm font-semibold text-[var(--danger)] hover:bg-[#fff2f2]"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--border)] px-5 text-sm font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)]"
             >
               Switch Account
             </button>
@@ -206,7 +206,7 @@ export default function RouteManagementPage() {
     return (
       <PageShell>
         <Card treatment="operational" className="mx-auto max-w-lg p-8 text-center">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fde8e8] text-[var(--danger)]">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--danger-soft)] text-[var(--danger)]">
             <AlertTriangle size={26} />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">Unable to Load Routes</h1>

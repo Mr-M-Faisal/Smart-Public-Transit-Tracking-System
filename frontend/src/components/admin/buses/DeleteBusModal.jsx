@@ -42,7 +42,7 @@ export function DeleteBusModal({ isOpen, onClose, onDeleted, bus }) {
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#fde8e8] text-[var(--danger)]">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--danger-soft)] text-[var(--danger)]">
               <Trash2 size={18} />
             </span>
             <div>
@@ -64,13 +64,13 @@ export function DeleteBusModal({ isOpen, onClose, onDeleted, bus }) {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-[#f4cccc] bg-[#fff8f8] p-3 text-xs text-[var(--danger)]" role="alert">
+          <div className="mt-4 rounded-xl border border-[#f4cccc] bg-[var(--danger-soft)] p-3 text-xs text-[var(--danger)]" role="alert">
             {error}
           </div>
         )}
 
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#ffe082] bg-[#fffde7] p-4 text-xs text-[#8d6e1a]">
-          <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[#b97812]" />
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#ffe082] bg-[var(--warning-soft)] p-4 text-xs text-[var(--warning)]">
+          <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[var(--warning)]" />
           <div>
             <p className="font-bold">Are you sure you want to delete bus {bus.busNumber}?</p>
             <p className="mt-1">

@@ -5,7 +5,7 @@ import { Card } from "../common/Card";
 
 const occupancyTone = { Available: "success", Limited: "warning", Full: "danger" };
 
-export function BusCard({ bus }) {
+export function BusCard({ bus, onSelect, selected = false }) {
   const operating = bus.status === "active" || bus.status === "Active" || ["On Time", "Delayed", "Arriving"].includes(bus.status);
   const liveDetails = [
     !bus.isSaved && bus.eta && { icon: Clock3, label: "ETA", value: bus.eta },
@@ -13,7 +13,7 @@ export function BusCard({ bus }) {
     !bus.isSaved && (bus.occupancy || bus.availableSeats != null) && { icon: Users, label: "Seats", value: bus.occupancy || `${bus.availableSeats} available`, tone: occupancyTone[bus.occupancy] || "neutral" },
   ].filter(Boolean);
 
-  return <Link href={`/buses/${bus.id}`} className="block">
+  const content = <>
     <Card treatment="operational" className="bus-card group overflow-hidden p-0 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(15,23,42,0.1)]">
       <div className="flex min-w-0">
         <div className="grid h-[104px] w-[96px] shrink-0 place-items-center border-r border-[var(--border)] bg-[var(--primary-soft)] p-3 sm:w-[108px]" aria-hidden="true">
@@ -30,7 +30,8 @@ export function BusCard({ bus }) {
         </div>
       </div>
     </Card>
-  </Link>;
+  </>;
+  return onSelect ? <button type="button" onClick={onSelect} aria-pressed={selected} className="fleet-bus-button">{content}</button> : <Link href={`/buses/${bus.id}`} className="block min-w-0">{content}</Link>;
 }
 
 function Info({ icon: Icon, label, value, tone }) {

@@ -28,7 +28,7 @@ export function StopLocationPicker({ idPrefix, position, onChange, disabled }) {
       <p id={idPrefix + "-location-help"} className="mt-1 text-sm leading-6 text-[var(--muted)]">Search for the general area, then click the map or drag the marker to select the exact roadside stop location.</p>
     </div>
     <LocationSearch idPrefix={idPrefix} disabled={disabled} onSelect={selectSearchResult} />
-    {tileError && <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl bg-[#fff9ed] p-3 text-sm">
+    {tileError && <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl bg-[var(--warning-soft)] p-3 text-sm">
       <p className="text-[var(--danger)]">Map tiles could not be loaded. Check your connection and retry before choosing a location.</p>
       <Button type="button" variant="secondary" disabled={disabled} onClick={retryMap} className="min-h-11">Retry map</Button>
     </div>}

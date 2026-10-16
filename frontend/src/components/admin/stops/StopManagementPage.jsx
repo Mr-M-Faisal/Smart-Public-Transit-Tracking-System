@@ -173,7 +173,7 @@ export default function StopManagementPage() {
     return (
       <PageShell>
         <Card treatment="operational" className="mx-auto max-w-lg p-8 text-center">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fde8e8] text-[var(--danger)]">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--danger-soft)] text-[var(--danger)]">
             <AlertTriangle size={26} />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">Admin Access Required</h1>
@@ -181,7 +181,7 @@ export default function StopManagementPage() {
             Administrator privileges are required to manage stops.
           </p>
           <div className="mt-6">
-            <button type="button" onClick={() => { clearAccessToken(); router.replace("/login?redirect=/admin/stops"); }} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--border)] px-5 text-sm font-semibold text-[var(--danger)] hover:bg-[#fff2f2]">
+            <button type="button" onClick={() => { clearAccessToken(); router.replace("/login?redirect=/admin/stops"); }} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--border)] px-5 text-sm font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)]">
               Switch Account
             </button>
           </div>
@@ -194,7 +194,7 @@ export default function StopManagementPage() {
     return (
       <PageShell>
         <Card treatment="operational" className="mx-auto max-w-lg p-8 text-center">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#fde8e8] text-[var(--danger)]">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--danger-soft)] text-[var(--danger)]">
             <AlertTriangle size={26} />
           </div>
           <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">Unable to Load Stops</h1>

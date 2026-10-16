@@ -10,7 +10,7 @@
       :root[data-theme="orange"] { --background: #f7f5f1; --foreground: #172033; --muted: #5f6b7c; }
       body { min-height: 100dvh; margin: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
       main { width: min(100%, 390px); text-align: center; }
-      img { width: 80px; height: 80px; border-radius: 20px; }
+      img { width: 80px; height: 80px; object-fit: cover; border-radius: 20px; }
       h1 { margin: 24px 0 8px; font-size: 28px; }
       p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
       small { display: block; margin-top: 16px; color: var(--muted); line-height: 1.5; }
@@ -26,7 +26,7 @@
   </head>
   <body>
     <main>
-      <img src="/smart-transit-logo.svg" alt="Smart Safar">
+      <img src="/images/logo.png" alt="Smart Safar">
       <h1>You're offline</h1>
       <p>Some Smart Safar features need an internet connection.</p>
       <small>Live buses, ETAs, bookings, alerts, and driver updates will be available when you reconnect.</small>

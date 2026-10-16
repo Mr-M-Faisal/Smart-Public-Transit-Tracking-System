@@ -238,7 +238,7 @@ export default function ConfirmationPage({ bookingId }) {
         </Card>
 
         {booking.paymentStatus === "pending" && (
-          <p className="mt-4 rounded-xl border border-[#f0d7aa] bg-[#fff9ed] p-4 text-sm leading-6 text-[#6f531d]">
+          <p className="mt-4 rounded-xl border border-[#f0d7aa] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning)]">
             Payment is pending. Smart Safar does not currently provide a customer payment gateway, so
             no successful payment is claimed on this page.
           </p>
