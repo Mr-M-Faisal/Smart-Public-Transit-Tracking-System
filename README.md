@@ -193,7 +193,7 @@ Example Socket.IO event flow (update names to match your code):
 - **Backend:** deploy the `backend` folder to any Node.js host (Render, Railway, a VPS, etc.). Make sure the host supports **persistent WebSocket connections**; serverless platforms generally do not.
 - **Database:** use MongoDB Atlas and put its connection string in `MONGODB_URI`.
 
-🌐 **Live app:** https://smart-public-transit-tracking-syste.vercel.app
+🌐 **Live app:** https://main.d1h2a231vh6m10.amplifyapp.com/driver/dashboard
 
 ## 🗺️ Roadmap
 
