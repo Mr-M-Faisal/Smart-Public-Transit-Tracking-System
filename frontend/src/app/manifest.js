@@ -14,8 +14,9 @@ export default function manifest() {
     categories: ["travel", "navigation"],
     prefer_related_applications: false,
     icons: [
-      { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      { src: "/icons/maskable-512-v2.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/app-192-v2.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/app-512-v2.png", sizes: "512x512", type: "image/png", purpose: "any" },
     ],
   };
 }

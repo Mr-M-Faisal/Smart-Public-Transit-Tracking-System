@@ -1674,7 +1674,7 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
   .app-experience--driver .premium-card:hover { transform: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  html:focus-within { scroll-behavior: smooth; }
+  html:focus-within { scroll-behavior: auto; }
 }
 /* Restrict decorative motion without touching splash or live map markers. */
 :root[data-data-saver="on"], :root[data-light-effects="true"] { --ui-motion: 0ms; --ui-blur: 0px; }
@@ -2345,3 +2345,88 @@ main h2 { line-height: 1.3; letter-spacing: -.015em; }
 .home-network-action svg { flex: none; }
 .home-network-action:hover { background: var(--primary-dark); }
 :root[data-data-saver="on"] .home-page .home-map-section .home-network-card { background: var(--card) !important; }
+
+/* Native settings reuse the current theme and shared page scrolling. */
+.native-settings { min-width: 0; }
+.native-settings__header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.native-settings__header h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; }
+.native-settings__header > a { display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 12px; }
+.native-settings__profile, .native-settings__row { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 14px 16px; }
+.native-settings__profile > span:nth-child(2), .native-settings__row > span { flex: 1; min-width: 0; }
+.native-settings strong, .native-settings small { display: block; overflow-wrap: anywhere; }
+.native-settings small { margin-top: 3px; font-size: 12px; color: var(--muted); }
+.native-settings__profile, .native-settings__group > div, .native-settings__detail { border: 1px solid var(--border); border-radius: 16px; background: var(--card); overflow: hidden; }
+.native-settings__group { margin-top: 24px; }
+.native-settings__group h2 { margin: 0 12px 8px; font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.native-settings__row + .native-settings__row { border-top: 1px solid var(--border); }
+.native-settings__row > svg:first-child { color: var(--primary-ink); flex-shrink: 0; }
+.native-settings__row strong { font-size: 14px; font-weight: 650; }
+.native-settings__detail { padding: clamp(16px, 4vw, 28px); }
+.native-settings :is(a, button) { transition: background-color 180ms ease, border-color 180ms ease; }
+.native-settings a:hover { background: var(--primary-soft); }
+.native-settings a:active { background: var(--primary-soft-strong); }
+.native-settings a:focus-visible { outline: 2px solid var(--primary); outline-offset: -3px; }
+.public-bottom-nav > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 48px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.app-account-menu :is(a, button), .app-driver-more-menu :is(a, button) { min-height: 44px; }
+.pwa-launch { background: var(--background); }
+.pwa-launch__skip { background: var(--card); }
+:root[data-data-saver="on"] .pwa-launch__cinema { display: none; }
+:root[data-data-saver="on"] .pwa-launch__brand { animation: none; opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .native-settings :is(a, button) { transition: none; }
+}
+
+:root[data-data-saver="on"] .native-settings :is(a, button) { transition: none; }
+.public-bottom-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+
+/* Public header: one shared container, three aligned desktop areas. */
+.legacy-navbar.public-header {
+  position: fixed; inset: 0 0 auto; z-index: 800; height: 66px;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--app-shell-surface, var(--background)) !important;
+  box-shadow: none; backdrop-filter: none;
+}
+.public-navbar-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: 12px; height: 100%; max-width: 1280px;
+  margin-inline: auto; padding-inline: clamp(16px, 3vw, 32px);
+}
+.public-navbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; width: fit-content; }
+.public-navbar-brand > span { min-width: 0; }
+.public-navbar-brand strong { display: block; font-size: 15px; line-height: 1.25; font-weight: 800; white-space: nowrap; color: var(--foreground); }
+.public-navbar-brand small { display: block; margin-top: 3px; font-size: 10px; line-height: 1.3; font-weight: 600; letter-spacing: .02em; white-space: nowrap; color: var(--muted); }
+.public-navbar-links { display: none; align-items: center; justify-content: center; gap: 6px; }
+.public-navbar-actions { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.public-navbar-links a, .public-navbar-actions > a {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding-inline: 12px; border-radius: 10px; white-space: nowrap; font-size: 13px; font-weight: 650;
+}
+.public-navbar-links a { color: var(--muted); }
+.public-navbar-actions > .public-navbar-register { color: var(--primary-ink); }
+.public-navbar-actions > .public-navbar-signin { background: var(--primary); color: var(--primary-contrast); padding-inline: 16px; }
+.public-navbar-actions .public-install-action { width: 44px; height: 44px; border-radius: 10px; background: var(--card); box-shadow: none; }
+.public-header :is(a, button) { transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease; }
+.public-navbar-register:hover { background: var(--primary-soft); }
+.public-navbar-signin:hover { background: color-mix(in srgb, var(--primary) 90%, var(--foreground)); }
+.public-header :is(a, button):focus-visible, .public-navbar-mobile :is(a, button):focus-visible { outline: 2px solid var(--primary-ink); outline-offset: 3px; }
+.public-navbar-mobile > button { border-radius: 12px; }
+.public-navbar-mobile > button[aria-expanded="true"] { background: var(--primary-soft); color: var(--primary-ink); }
+.public-navbar-account-menu { top: calc(100% + 10px); right: 0; width: min(260px, calc(100vw - 32px)); }
+@media (max-width: 639px) {
+  .public-navbar-actions > .public-navbar-register { display: none; }
+}
+@media (max-width: 1023px) {
+  .public-navbar-mobile { display: grid; }
+  body:has(.public-navbar-mobile) .public-footer { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1024px) {
+  .legacy-navbar.public-header { height: 72px; }
+  .public-navbar-container { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .public-navbar-links { display: flex; }
+  .public-navbar-mobile, .public-navbar-account-menu { display: none; }
+  .legacy-navbar.public-header ~ main { padding-top: calc(72px + 1.5rem) !important; }
+  .legacy-navbar.public-header ~ .cache-safety-notice { margin-top: calc(72px + .75rem); }
+}
+:root[data-data-saver="on"] .public-header :is(a, button) { transition: none; }
+@media (prefers-reduced-motion: reduce) { .public-header :is(a, button) { transition: none; } }
