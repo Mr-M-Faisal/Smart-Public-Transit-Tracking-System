@@ -86,8 +86,8 @@ This leads to long, uncertain waits, poor planning and low trust in public trans
 - MongoDB
 
 **Hosting**
-- Frontend on [Vercel](https://vercel.com)
-- Backend on _(add your host, e.g. Render / Railway / VPS)_
+- Frontend on AWS Amplify [https://main.d1h2a231vh6m10.amplifyapp.com/]
+- Backend on AWS Beanstalk
 
 ## 🏗️ System Architecture
 
