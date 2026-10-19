@@ -27,20 +27,20 @@ test("GPS starting, weak and permission denied are distinct from GPS On", async 
   for (const state of ["error", "weak", "permission-denied"]) {
     const result = format({ ...sample, gpsStatus: { state } });
     assert.equal(result.gps, state === "permission-denied" ? "GPS Off" : "GPS Weak");
-    assert.equal(result.currentLocation, "Location unavailable"); assert.equal(result.arrival, "Calculating...");
+    assert.equal(result.currentLocation, "Location unavailable"); assert.equal(result.arrival, "Not available");
   }
 });
 test("stale, missing and future location timestamps cannot imply live data", async () => {
   const format = await display();
   for (const timestamp of [undefined, "invalid", new Date(now - 120001).toISOString(), new Date(now + 60000).toISOString()]) {
     const result = format({ ...sample, bus: { lastLocationUpdate: timestamp } });
-    assert.notEqual(result.gps, "GPS On"); assert.equal(result.arrival, "Calculating...");
+    assert.notEqual(result.gps, "GPS On"); assert.equal(result.arrival, "Not available");
   }
 });
 test("ETA display rejects unreasonable and invalid values without changing calculations", async () => {
   const format = await display();
   for (const etaMinutes of [903, 121, -1, Infinity, NaN, null, "5"]) {
-    assert.equal(format({ ...sample, eta: { ...sample.eta, etaMinutes } }).arrival, "Calculating...");
+    assert.equal(format({ ...sample, eta: { ...sample.eta, etaMinutes } }).arrival, "Not available");
   }
   assert.equal(format({ ...sample, eta: { ...sample.eta, etaMinutes: 0 } }).arrival, "Arriving");
   assert.equal(format({ ...sample, eta: { ...sample.eta, etaMinutes: 120 } }).arrival, "120 min");

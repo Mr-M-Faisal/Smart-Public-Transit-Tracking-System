@@ -5,9 +5,9 @@ export function driverDisplay({ bus, eta, shiftActive, gpsStatus = {}, errors = 
   const updatedAt = new Date(bus?.lastLocationUpdate || "").getTime();
   const age = now - updatedAt;
   const fresh = Number.isFinite(age) && age >= 0 && age <= DRIVER_LOCATION_MAX_AGE_MS;
-  const blocked = ["permission-denied", "error", "weak"].includes(gpsStatus.state);
-  const available = shiftActive && fresh && !blocked;
-  const gps = !shiftActive || gpsStatus.state === "permission-denied" ? "GPS Off"
+  const blocked = ["permission-denied", "error", "weak", "access-ended"].includes(gpsStatus.state);
+  const available = shiftActive && fresh && !blocked && gpsStatus.state === "sharing";
+  const gps = !shiftActive || ["stopped", "permission-denied", "access-ended"].includes(gpsStatus.state) ? "GPS Off"
     : blocked ? "GPS Weak"
     : available ? "GPS On"
     : gpsStatus.state === "starting" ? "GPS Starting"
@@ -20,7 +20,7 @@ export function driverDisplay({ bus, eta, shiftActive, gpsStatus = {}, errors = 
     currentLocation: available && !errors.eta && eta?.currentStop?.stopName || "Location unavailable",
     nextStop: nextStop || "Not available",
     arrival: !shiftActive || errors.eta || !nextStop ? "Not available"
-      : !available || !validEta ? "Calculating..."
+      : !available || !validEta ? "Not available"
       : minutes <= 1 ? "Arriving" : Math.round(minutes) + " min",
   };
 }

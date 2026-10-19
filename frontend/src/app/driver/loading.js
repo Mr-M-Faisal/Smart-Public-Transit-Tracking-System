@@ -1,2 +1,2 @@
-import { LoadingPageShell } from "../../components/common/LoadingPageShell";
-export default function Loading() { return <LoadingPageShell title="Driver workspace" variant="cards" />; }
+// The persistent driver workspace owns its section loading states.
+export default function Loading() { return null; }

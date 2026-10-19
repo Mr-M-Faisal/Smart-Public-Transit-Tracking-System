@@ -1,4 +1,3 @@
-import DriverDashboardClient from "../../../components/driver/DriverDashboardClient";
 
 export const metadata = {
   title: "Driver Dashboard | Smart Safar Faisalabad",
@@ -6,5 +5,5 @@ export const metadata = {
 };
 
 export default function DriverDashboardRoute() {
-  return <DriverDashboardClient />;
+  return null;
 }

@@ -5,15 +5,13 @@ const { publicBus, emitSeatUpdate, changeManualSeat } = require('../services/sea
 const { sendApiError: sendSeatError, ApiError } = require('../utils/apiError');
 const { createFleetBus, updateFleetBus, deleteFleetBus } = require('../services/busAssignmentService');
 const { sendApiError } = require('../utils/apiError');
+const { estimateEtaMinutes } = require('../utils/eta');
 const { haversineDistanceKm } = require('../utils/geo');
 
 // How close (in km) the bus must get to a stop before we consider it
 // "reached" and advance to the next one. ~50 meters.
 const ARRIVAL_THRESHOLD_KM = 0.05;
 
-// A sensible fallback speed (km/h) to use for ETA when we don't have
-// any real speed readings yet (e.g. right after a bus starts its shift).
-const DEFAULT_SPEED_KMH = 20;
 
 const getBusDirection = (bus) => bus.direction === 'return' ? 'return' : 'outbound';
 
@@ -73,12 +71,7 @@ const calculateNextStopAndETA = async (bus) => {
     nextStop.longitude
   );
 
-  const avgSpeed =
-    bus.recentSpeeds.length > 0
-      ? bus.recentSpeeds.reduce((sum, s) => sum + s, 0) / bus.recentSpeeds.length
-      : DEFAULT_SPEED_KMH;
-
-  const etaMinutes = avgSpeed > 0 ? (distanceKm / avgSpeed) * 60 : null;
+  const etaMinutes = estimateEtaMinutes(distanceKm, bus.recentSpeeds);
 
   return {
     direction,
