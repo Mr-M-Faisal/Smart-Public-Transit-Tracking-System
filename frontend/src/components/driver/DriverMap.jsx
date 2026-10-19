@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ClientTransitMap } from "../map/MapShell";
 import { BusMarker } from "../map/MapShell";
 import { PassengerMarker } from "../map/MapShell";
@@ -11,7 +11,11 @@ import { MapViewport } from "../map/MapShell";
 import { getBusPosition } from "../../lib/transit/format";
 import { isValidPosition } from "../../lib/transit/coordinates";
 
+import { canFollowBus } from "../../lib/transit/mapHeading";
+
 export function DriverMap({ bus, route, direction, stops, nextStopId, connection, passengers = [] }) {
+  const [followId, setFollowId] = useState(null);
+  const following = followId === bus._id;
   const busPosition = useMemo(() => getBusPosition(bus), [bus]);
   const mappedStops = useMemo(
     () => stops.filter((stop) => Number.isFinite(stop.latitude) && Number.isFinite(stop.longitude)),
@@ -61,7 +65,7 @@ export function DriverMap({ bus, route, direction, stops, nextStopId, connection
         zoom={14}
         className="h-[min(60vh,560px)] min-h-80 rounded-xl"
       >
-        <MapViewport positions={mapPositions} focusKey={focusKey} />
+        <MapViewport positions={mapPositions} focusKey={focusKey} followPosition={connection === "Connected" && canFollowBus(followId, bus) ? busPosition : null} onFollowSuspend={() => setFollowId(null)} />
         <RoutePolyline positions={roadPositions} />
         {mappedStops.map((stop) => (
           <StopMarker
@@ -78,9 +82,10 @@ export function DriverMap({ bus, route, direction, stops, nextStopId, connection
         ))}
         {busPosition && <BusMarker position={busPosition} bus={bus} />}
         <MapControls
-          onShowAll={(map) =>
-            mapPositions.length && map.fitBounds(mapPositions, { padding: [32, 32], maxZoom: 15 })
-          }
+          onToggleFollow={() => setFollowId(following ? null : bus._id)}
+          followActive={following}
+          followDisabled={!following && (connection !== "Connected" || !canFollowBus(bus._id, bus))}
+          onShowAll={(map) => { setFollowId(null); if (mapPositions.length) map.fitBounds(mapPositions, { padding: [32, 32], maxZoom: 15 }); }}
         />
       </ClientTransitMap>
     </section>

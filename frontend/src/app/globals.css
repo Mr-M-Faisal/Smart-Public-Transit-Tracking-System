@@ -2591,3 +2591,10 @@ main h2 { line-height: 1.3; letter-spacing: -.015em; }
 }
 :root[data-data-saver="on"] .app-experience--driver :is(.ui-button, .driver-primary-link, .app-nav-link, .driver-shift-refresh) { transition: none; }
 @media (prefers-reduced-motion: reduce) { .app-experience--driver :is(.ui-button, .driver-primary-link, .app-nav-link, .driver-shift-refresh) { transition: none; } }
+
+/* Keep bus symbols upright; only the directional tip turns around the GPS anchor. */
+.transit-map-marker--bus { position: relative; }
+.transit-map-bus-rotation { position: absolute; inset: 0; pointer-events: none; transition: transform 180ms ease-out; }
+.transit-map-bus-rotation[hidden] { display: none; }
+.transit-map-heading-tip { position: absolute; top: -9px; left: calc(50% - 5px); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--primary-ink); filter: drop-shadow(0 0 1px white); }
+@media (prefers-reduced-motion: reduce) { .transit-map-bus-rotation { transition: none; } }

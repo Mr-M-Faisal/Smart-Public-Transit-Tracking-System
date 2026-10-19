@@ -43,24 +43,29 @@ export function useDriverLocation({ bus, enabled, onUpdate, onStatusChange }) {
     }
 
     let busy = false;
+    let signalRevision = 0;
     let lastFix = 0;
     let permissionDenied = false;
     let accessEnded = false;
     const controller = new AbortController();
     const watcher = navigator.geolocation.watchPosition(async ({ coords, timestamp }) => {
-      if (!active || busy || accessEnded) return;
-      if (!usableDriverFix({ coords, timestamp }) || timestamp <= lastFix) { report({ state: "weak", status: "GPS signal weak", error: "Move to an open area and try again." }); return; }
+      if (!active || permissionDenied || accessEnded) return;
+      if (!usableDriverFix({ coords, timestamp })) { signalRevision++; report({ state: "weak", status: "GPS signal weak", error: "Move to an open area and try again." }); return; }
+      if (busy || timestamp <= lastFix) return;
       lastFix = timestamp;
       if (!navigator.onLine) { report({ state: "error", status: "Check your internet", error: "" }); return; }
       busy = true;
+      const revision = signalRevision;
       setGps((current) => ({ ...current, status: "Sending location..." }));
       try {
         const updated = await busService.updateLocation(bus._id, {
           latitude: coords.latitude,
           longitude: coords.longitude,
+          timestamp,
+          accuracy: coords.accuracy,
           ...(Number.isFinite(coords.speed) && coords.speed >= 0 && coords.speed <= 40 ? { speed: coords.speed * 3.6 } : {}),
         }, { signal: controller.signal });
-        if (active) {
+        if (active && !permissionDenied && navigator.onLine && revision === signalRevision) {
           onUpdate(updated);
           report({ state: "sharing", status: "GPS On", error: "" });
         }
@@ -78,10 +83,11 @@ export function useDriverLocation({ bus, enabled, onUpdate, onStatusChange }) {
       }
     }, (locationError) => {
       if (!active) return;
+      signalRevision++;
       permissionDenied = locationError.code === 1;
       report({
         state: permissionDenied ? "permission-denied" : "error",
-        status: "Location unavailable",
+        status: permissionDenied ? "Permission Denied" : "GPS Weak",
         error: permissionDenied
           ? "Allow location in your browser settings, then try again."
           : locationError.code === 3
@@ -91,7 +97,7 @@ export function useDriverLocation({ bus, enabled, onUpdate, onStatusChange }) {
     }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
 
     const recover = () => { if (active && navigator.onLine && !permissionDenied && !accessEnded && document.visibilityState !== "hidden") setAttempt(value => value + 1); };
-    const offline = () => { if (!permissionDenied && !accessEnded) report({ state: "error", status: "Check your internet", error: "" }); };
+    const offline = () => { signalRevision++; if (!permissionDenied && !accessEnded) report({ state: "error", status: "Check your internet", error: "" }); };
     window.addEventListener("offline", offline);
     window.addEventListener("online", recover);
     document.addEventListener("visibilitychange", recover);
@@ -119,6 +125,7 @@ function getLocationRequestError(error) {
   if (error.response.status === 401) return "Your session has expired. Sign in again.";
   if (error.response.status === 403) return "You no longer have permission to update this bus. Refresh your dashboard.";
   if (error.response.status === 404) return "This bus is no longer available. Refresh your dashboard.";
+  if (error.response.status === 422) return "An older GPS fix was ignored. Waiting for a fresh location.";
   if (error.response.status === 409) return "An active shift is required to share location.";
   return "Unable to send your location. Please try again.";
 }

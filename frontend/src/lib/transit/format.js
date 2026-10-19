@@ -12,6 +12,7 @@ export function getRouteName(route) {
 
 export function getBusPosition(bus) {
   if (Array.isArray(bus.position)) return bus.position;
+  if (Number.isFinite(bus.latitude) && Number.isFinite(bus.longitude)) return [bus.latitude, bus.longitude];
   if (bus.currentLocation?.latitude != null && bus.currentLocation?.longitude != null) {
     return [bus.currentLocation.latitude, bus.currentLocation.longitude];
   }

@@ -38,6 +38,9 @@ async function startDriverShift(driverId) {
       bus.status = 'active';
       bus.direction = 'outbound';
       bus.currentStopIndex = 0;
+      // A new duty cycle has no confirmed GPS fix or speed history yet.
+      bus.lastLocationUpdate = null;
+      bus.recentSpeeds = [];
       await bus.save({ session });
 
       const [shift] = await Shift.create([{

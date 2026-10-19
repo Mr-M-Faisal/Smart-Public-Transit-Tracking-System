@@ -22,7 +22,7 @@ async function setup({ enabled = true, upload = async () => ({ _id: "bus", lastL
 const fix = () => ({ timestamp: Date.now(), coords: { latitude: 31.4, longitude: 73.1, accuracy: 12, speed: 5 } });
 test("one watcher, confirmed uploads, units, and cleanup", async () => {
   const rig = await setup(); assert.equal(rig.watches(), 1);
-  await rig.success(fix()); assert.equal(rig.calls.length, 1); assert.equal(rig.calls[0][1].speed, 18);
+  await rig.success(fix()); assert.equal(rig.calls.length, 1); assert.equal(rig.calls[0][1].speed, 18); assert.equal(rig.calls[0][1].accuracy, 12); assert.ok(Number.isFinite(rig.calls[0][1].timestamp));
   assert.equal(rig.states.at(-1), "sharing"); assert.equal(rig.updates.length, 1);
   rig.cleanup(); assert.equal(rig.clears(), 1); assert.equal(rig.signal().aborted, true); assert.equal(Object.keys(rig.events).length, 0);
 });
@@ -59,4 +59,23 @@ test("older telemetry cannot replace newer telemetry; route order respects retur
   assert.equal(direction.getStopsInDirection(stops, "return")[0]._id, "2");
   assert.equal(stops[0]._id, "1");
   assert.equal(direction.getStopsInDirection([stops[0]], "return").length, 1);
+});
+
+test("a late upload response cannot override denied permission or offline status", async () => {
+  for (const loseSignal of [rig => rig.failure({code:1}), rig => { rig.navigator.onLine=false; rig.events.offline(); }]) {
+    let resolve;
+    const rig=await setup({upload:()=>new Promise(done=>resolve=done)});
+    const pending=rig.success(fix()); loseSignal(rig);
+    resolve({_id:"bus",lastLocationUpdate:new Date().toISOString()}); await pending;
+    assert.notEqual(rig.states.at(-1),"sharing"); assert.equal(rig.updates.length,0);
+    rig.cleanup();
+  }
+});
+test("out-of-order rejection does not revoke the shift or permanently halt GPS", async () => {
+  let rejected=true;
+  const rig=await setup({upload:async()=>{ if(rejected) {rejected=false;throw {response:{status:422}};} return {_id:"bus"}; }});
+  const first=fix(); first.timestamp-=1000; await rig.success(first);
+  assert.notEqual(rig.states.at(-1),"access-ended");
+  await rig.success(fix()); assert.equal(rig.calls.length,2); assert.equal(rig.states.at(-1),"sharing");
+  rig.cleanup();
 });

@@ -1,5 +1,8 @@
 const Bus = require('../models/Bus');
 const Shift = require('../models/Shift');
+const User = require('../models/User');
+const { runInTransaction } = require('../services/transactionService');
+const { parseGpsFix, hasFreshLocation } = require('../utils/gps');
 const { getStopsForRoute } = require('../services/routeStopService');
 const { publicBus, emitSeatUpdate, changeManualSeat } = require('../services/seatService');
 const { sendApiError: sendSeatError, ApiError } = require('../utils/apiError');
@@ -26,8 +29,8 @@ const sameId = (left, right) => left && right && left.toString() === right.toStr
 // - finds the next stop in sequence past currentStopIndex
 // - measures straight-line distance from the bus's current location
 // - divides by a 5-reading moving average of recent speeds
-const calculateNextStopAndETA = async (bus) => {
-  const storedStops = await getStopsForRoute(bus.route);
+const calculateNextStopAndETA = async (bus, { session, advance = true } = {}) => {
+  const storedStops = await getStopsForRoute(bus.route, { session });
   const direction = getBusDirection(bus);
   const stops = getStopsInDirection(storedStops, direction);
 
@@ -38,6 +41,9 @@ const calculateNextStopAndETA = async (bus) => {
   let nextStop = stops[bus.currentStopIndex] || null;
   let currentStop = bus.currentStopIndex > 0 ? stops[bus.currentStopIndex - 1] : null;
   let terminalReached = false;
+  if (!hasFreshLocation(bus)) {
+    return { direction, currentStop: stopSummary(currentStop), nextStop: stopSummary(nextStop), distanceKm: null, etaMinutes: null, terminalReached: false };
+  }
 
   // If the bus is already within range of its current target stop,
   // advance to the one after it (this is what "detects arrival" means).
@@ -49,7 +55,7 @@ const calculateNextStopAndETA = async (bus) => {
       nextStop.longitude
     );
 
-    if (distToCurrentTarget <= ARRIVAL_THRESHOLD_KM && bus.currentStopIndex < stops.length - 1) {
+    if (advance && distToCurrentTarget <= ARRIVAL_THRESHOLD_KM && bus.currentStopIndex < stops.length - 1) {
       currentStop = nextStop;
       bus.currentStopIndex += 1;
       nextStop = stops[bus.currentStopIndex];
@@ -185,7 +191,7 @@ const getBusETA = async (req, res) => {
       return res.status(404).json({ message: 'Bus not found' });
     }
 
-    const result = await calculateNextStopAndETA(bus);
+    const result = await calculateNextStopAndETA(bus, { advance: false });
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ message: 'Server error calculating ETA', error: err.message });
@@ -199,54 +205,42 @@ const getBusETA = async (req, res) => {
 // @access  Private (driver)
 const updateBusLocation = async (req, res) => {
   try {
-    const { latitude, longitude, speed } = req.body;
-
-    if (latitude == null || longitude == null) {
-      return res.status(400).json({ message: 'latitude and longitude are required' });
-    }
-
-    const bus = await Bus.findById(req.params.id);
-    if (!bus) {
-      return res.status(404).json({ message: 'Bus not found' });
-    }
-    if (!sameId(req.user.assignedBus, bus._id) || !sameId(bus.driver, req.user._id)) {
-      return res.status(403).json({ message: 'Forbidden: this bus is not assigned to you.' });
-    }
-    if (!await Shift.exists({ driver: req.user._id, bus: bus._id, status: 'active' })) {
-      return res.status(409).json({ message: 'Start an active shift before updating location.' });
-    }
-
-    bus.currentLocation = { latitude, longitude };
-    bus.lastLocationUpdate = new Date();
-    bus.status = 'active';
-
-    // Maintain a rolling window of the last 5 speed readings
-    if (speed != null && !Number.isNaN(speed)) {
-      bus.recentSpeeds.push(speed);
-      if (bus.recentSpeeds.length > 5) {
-        bus.recentSpeeds.shift(); // drop the oldest reading
+    // Capture once: transaction retries must not turn an old fix into a newer one.
+    const fix = parseGpsFix(req.body);
+    const { bus, etaInfo } = await runInTransaction(async (session) => {
+      const driver = await User.findOne({ _id: req.user._id, role: 'driver' }).select('assignedBus').session(session);
+      const bus = await Bus.findById(req.params.id).session(session);
+      if (!bus) throw new ApiError(404, 'Bus not found');
+      if (!driver || !sameId(driver.assignedBus, bus._id) || !sameId(bus.driver, driver._id)) {
+        throw new ApiError(403, 'Forbidden: this bus is not assigned to you.');
       }
-    }
-
-    // This also advances bus.currentStopIndex if the bus has arrived
-    const etaInfo = await calculateNextStopAndETA(bus);
-
-    await bus.save();
-
-    // Broadcast this update (now including ETA) to anyone watching this bus
-    const io = req.app.get('io');
-    io.to(`bus:${bus._id}`).emit('locationUpdate', {
+      const shift = await Shift.findOne({ driver: driver._id, bus: bus._id, status: 'active' }).session(session);
+      if (!shift) throw new ApiError(409, 'Start an active shift before updating location.');
+      if (fix.timestamp < shift.startedAt.getTime() ||
+          (bus.lastLocationUpdate && fix.timestamp <= bus.lastLocationUpdate.getTime())) {
+        throw new ApiError(422, 'This GPS fix predates the active shift or a location already accepted.');
+      }
+      bus.currentLocation = { latitude: fix.latitude, longitude: fix.longitude };
+      bus.lastLocationUpdate = new Date(fix.timestamp);
+      bus.status = 'active';
+      if (fix.speed != null) bus.recentSpeeds = [...bus.recentSpeeds, fix.speed].slice(-5);
+      const etaInfo = await calculateNextStopAndETA(bus, { session });
+      // The bus write conflicts with shift end and reassignment. A retry rechecks
+      // authorization, the shift and capture order against the committed state.
+      await bus.save({ session });
+      return { bus, etaInfo };
+    });
+    req.app.get('io').to('bus:' + bus._id).emit('locationUpdate', {
       busId: bus._id,
-      latitude,
-      longitude,
+      latitude: bus.currentLocation.latitude,
+      longitude: bus.currentLocation.longitude,
       lastLocationUpdate: bus.lastLocationUpdate,
       status: bus.status,
       ...etaInfo,
     });
-
     res.status(200).json({ ...bus.toObject(), ...etaInfo });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error updating bus location', error: err.message });
+  } catch (error) {
+    sendApiError(res, error, 'Server error updating bus location');
   }
 };
 

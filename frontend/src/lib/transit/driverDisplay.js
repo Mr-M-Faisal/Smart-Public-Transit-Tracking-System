@@ -1,5 +1,5 @@
 // Display safeguards only; the server remains the source of ETA and stop data.
-export const DRIVER_LOCATION_MAX_AGE_MS = 120000;
+export const DRIVER_LOCATION_MAX_AGE_MS = 30000;
 export const DRIVER_MAX_NEXT_STOP_MINUTES = 120;
 export function driverDisplay({ bus, eta, shiftActive, gpsStatus = {}, errors = {}, now = Date.now() }) {
   const updatedAt = new Date(bus?.lastLocationUpdate || "").getTime();
@@ -7,7 +7,8 @@ export function driverDisplay({ bus, eta, shiftActive, gpsStatus = {}, errors = 
   const fresh = Number.isFinite(age) && age >= 0 && age <= DRIVER_LOCATION_MAX_AGE_MS;
   const blocked = ["permission-denied", "error", "weak", "access-ended"].includes(gpsStatus.state);
   const available = shiftActive && fresh && !blocked && gpsStatus.state === "sharing";
-  const gps = !shiftActive || ["stopped", "permission-denied", "access-ended"].includes(gpsStatus.state) ? "GPS Off"
+  const gps = gpsStatus.state === "permission-denied" ? "Permission Denied"
+    : !shiftActive || ["stopped", "access-ended"].includes(gpsStatus.state) ? "GPS Off"
     : blocked ? "GPS Weak"
     : available ? "GPS On"
     : gpsStatus.state === "starting" ? "GPS Starting"
@@ -17,7 +18,7 @@ export function driverDisplay({ bus, eta, shiftActive, gpsStatus = {}, errors = 
   const nextStop = errors.eta ? null : eta?.nextStop?.stopName;
   return {
     gps,
-    currentLocation: available && !errors.eta && eta?.currentStop?.stopName || "Location unavailable",
+    currentLocation: !errors.eta && eta?.currentStop?.stopName || "Not reported",
     nextStop: nextStop || "Not available",
     arrival: !shiftActive || errors.eta || !nextStop ? "Not available"
       : !available || !validEta ? "Not available"

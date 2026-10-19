@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test --test-concurrency=1 test/driver-management.test.js test/seat-management.test.js test/route-geometry.test.js test/performance.test.js test/dashboard.test.js test/eta.test.js",
+    "test": "node --test --test-concurrency=1 test/driver-management.test.js test/seat-management.test.js test/route-geometry.test.js test/performance.test.js test/dashboard.test.js test/eta.test.js test/gps-reliability.test.js",
     "dev": "nodemon src/server.js",
     "migrate:stops": "node scripts/migrate-stops.js"
   },

@@ -6,11 +6,22 @@ import { isValidPosition } from "../../lib/transit/coordinates";
 import { readLiveMapState, saveLiveMapViewport } from "../../lib/live-map/liveMapStorage";
 
 function reducedMotionPreferred() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return typeof window !== "undefined" && (window.matchMedia("(prefers-reduced-motion: reduce)").matches || navigator.connection?.saveData);
 }
 
-export function MapViewport({ positions = [], focusKey, focusPosition, followPosition, persistViewport = false }) {
+export function MapViewport({ positions = [], focusKey, focusPosition, followPosition, onFollowSuspend, persistViewport = false }) {
   const map = useMap();
+  const suspendRef = useRef(onFollowSuspend);
+  useLayoutEffect(() => { suspendRef.current = onFollowSuspend; }, [onFollowSuspend]);
+  useEffect(() => {
+    const suspend = () => { map.stop(); suspendRef.current?.(); };
+    map.on("dragstart", suspend);
+    const container = map.getContainer();
+    const keyboard = event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "+", "-"].includes(event.key)) suspend(); };
+    container.addEventListener("wheel", suspend, { passive: true });
+    container.addEventListener("keydown", keyboard);
+    return () => { map.off("dragstart", suspend); container.removeEventListener("wheel", suspend); container.removeEventListener("keydown", keyboard); };
+  }, [map]);
   const positionsRef = useRef(positions);
   const restoredViewport = useRef(false);
 

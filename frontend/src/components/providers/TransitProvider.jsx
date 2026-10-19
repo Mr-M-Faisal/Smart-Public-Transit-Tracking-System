@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { getQueryClient, restoreQueries, persistQueries, isPublicQuery } from "../../lib/query/transitQueries";
 import { AUTH_CHANGE_EVENT, getAccessToken } from "../../lib/auth/token";
 import { connectSocket, disconnectSocket } from "../../lib/socket/socket";
+import { mergeTelemetry } from "../../lib/transit/liveTelemetry";
 export const LiveConnectionContext = createContext(false);
 export const CacheReadyContext = createContext(false);
 export function TransitProvider({ children }) {
@@ -32,10 +33,16 @@ export function TransitProvider({ children }) {
         }
       }
     };
+    const rewatch = () => { watched.clear(); watchQueries(); };
+    socket.on("connect", rewatch);
     const updateBus = (update) => {
       const id = String(update?.busId || update?._id || update?.id || "");
       if (!id) return;
-      const merge = (bus) => String(bus._id) !== id ? bus : { ...bus, ...update, ...(update.latitude != null ? { currentLocation: { latitude: update.latitude, longitude: update.longitude } } : {}) };
+      const merge = (bus) => {
+        if (String(bus._id) !== id) return bus;
+        const merged = mergeTelemetry(bus, update);
+        return merged === bus ? bus : { ...merged, ...(update.latitude != null ? { currentLocation: { latitude: update.latitude, longitude: update.longitude } } : {}) };
+      };
       client.setQueriesData({ queryKey: ["transit", "buses"] }, (data) => data?.map(merge));
       client.setQueryData(["transit", "bus", id], (data) => data ? merge(data) : undefined);
     };
@@ -63,7 +70,7 @@ export function TransitProvider({ children }) {
     window.addEventListener("online", reconnect);
     // Own the connection for the app lifetime. Page listeners still clean up.
     watchQueries();
-    return () => { active = false; socket.off("connect", markConnected); socket.off("disconnect", markDisconnected); socket.off("connect_error", markDisconnected); clearTimeout(timer); unsubscribe(); events.forEach((event) => socket.off(event, updateBus)); disconnectSocket(); window.removeEventListener(AUTH_CHANGE_EVENT, clearPrivate); window.removeEventListener("storage", clearPrivate); window.removeEventListener("online", reconnect); };
+    return () => { active = false; socket.off("connect", rewatch); socket.off("connect", markConnected); socket.off("disconnect", markDisconnected); socket.off("connect_error", markDisconnected); clearTimeout(timer); unsubscribe(); events.forEach((event) => socket.off(event, updateBus)); disconnectSocket(); window.removeEventListener(AUTH_CHANGE_EVENT, clearPrivate); window.removeEventListener("storage", clearPrivate); window.removeEventListener("online", reconnect); };
   }, [client]);
   return <QueryClientProvider client={client}><CacheReadyContext.Provider value={ready}><LiveConnectionContext.Provider value={connected}>{children}</LiveConnectionContext.Provider></CacheReadyContext.Provider></QueryClientProvider>;
 }

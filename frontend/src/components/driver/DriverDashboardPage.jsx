@@ -13,6 +13,7 @@ import { ProtectedPage } from "../common/ProtectedPage";
 import { DriverMap } from "./DriverMap";
 import { DriverPassengerPanel } from "./DriverPassengerPanel";
 import { DriverRouteCard } from "./DriverRouteCard";
+import { mergeTelemetry } from "../../lib/transit/liveTelemetry";
 import { isOlderLocation } from "../../lib/transit/driverGps";
 import { DriverLocationControl } from "./DriverLocationControl";
 import { useDriverLocation } from "../../hooks/useDriverLocation";
@@ -97,7 +98,7 @@ function DriverOperations({ user, view }) {
       });
       setAccessIssue(false);
       setData(current => {
-        if (String(current.bus?._id) === String(next.bus?._id) && isOlderLocation(next.bus.lastLocationUpdate, current.bus.lastLocationUpdate)) return { ...next, bus: current.bus, eta: current.eta };
+        if (next.bus.status === "active" && current.bus?.status === "active" && String(current.profile.activeShift?._id) === String(next.profile.activeShift?._id) && String(current.bus?._id) === String(next.bus?._id) && isOlderLocation(next.bus.lastLocationUpdate, current.bus.lastLocationUpdate)) return { ...next, bus: current.bus, eta: current.eta };
         return next;
       });
       return profile;
@@ -262,7 +263,7 @@ function DriverOperations({ user, view }) {
       }
       setData((current) => {
         if (String(current.bus?._id) !== String(location.busId)) return current;
-        if (location.status !== "idle" && isOlderLocation(location.lastLocationUpdate, current.bus.lastLocationUpdate)) return current;
+        if (mergeTelemetry(current.bus, location) === current.bus) return current;
         const hasCoordinates = location.latitude != null && location.longitude != null;
         const hasEta = Object.hasOwn(location, "currentStop") || Object.hasOwn(location, "nextStop") || Object.hasOwn(location, "etaMinutes");
         return {
@@ -336,7 +337,7 @@ function DriverOperations({ user, view }) {
       await load();
     } catch (requestError) {
       setShiftError(getShiftRequestError(requestError, "start"));
-      if (requestError.response?.status === 409) await load();
+      await load(); // A timeout can follow a committed shift; reconcile without retrying the mutation.
     } finally {
       shiftInFlight.current = false;
       setShiftBusy("");
@@ -360,8 +361,8 @@ function DriverOperations({ user, view }) {
       setPassengerLocations([]);
       await load();
     } catch (requestError) {
-      if (requestError.response?.status === 409) {
-        const profile = await load();
+      const profile = await load();
+      if (profile) {
         if (profile && profile.activeShift?.status !== "active") {
           setData((current) => ({ ...current, profile: { ...current.profile, ...profile, activeShift: null } }));
           setPassengerLocations([]);

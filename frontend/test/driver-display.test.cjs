@@ -13,26 +13,26 @@ test("fresh API values display without inventing stops", async () => {
   const format = await display(), result = format(sample);
   assert.equal(result.gps, "GPS On"); assert.equal(result.arrival, "5 min");
   assert.equal(result.currentLocation, "Reported stop"); assert.equal(result.nextStop, "Next reported stop");
-  assert.equal(format({ ...sample, eta: {} }).currentLocation, "Location unavailable");
+  assert.equal(format({ ...sample, eta: {} }).currentLocation, "Not reported");
   assert.equal(format({ ...sample, eta: {} }).nextStop, "Not available");
   assert.equal(format({ ...sample, eta: {} }).arrival, "Not available");
 });
 test("inactive shifts never show live GPS or an arrival", async () => {
   const format = await display(), result = format({ ...sample, shiftActive: false });
-  assert.equal(result.gps, "GPS Off"); assert.equal(result.arrival, "Not available"); assert.equal(result.currentLocation, "Location unavailable");
+  assert.equal(result.gps, "GPS Off"); assert.equal(result.arrival, "Not available"); assert.equal(result.currentLocation, "Reported stop");
 });
 test("GPS starting, weak and permission denied are distinct from GPS On", async () => {
   const format = await display();
   assert.equal(format({ ...sample, bus: {}, gpsStatus: { state: "starting" } }).gps, "GPS Starting");
   for (const state of ["error", "weak", "permission-denied"]) {
     const result = format({ ...sample, gpsStatus: { state } });
-    assert.equal(result.gps, state === "permission-denied" ? "GPS Off" : "GPS Weak");
-    assert.equal(result.currentLocation, "Location unavailable"); assert.equal(result.arrival, "Not available");
+    assert.equal(result.gps, state === "permission-denied" ? "Permission Denied" : "GPS Weak");
+    assert.equal(result.currentLocation, "Reported stop"); assert.equal(result.arrival, "Not available");
   }
 });
 test("stale, missing and future location timestamps cannot imply live data", async () => {
   const format = await display();
-  for (const timestamp of [undefined, "invalid", new Date(now - 120001).toISOString(), new Date(now + 60000).toISOString()]) {
+  for (const timestamp of [undefined, "invalid", new Date(now - 30001).toISOString(), new Date(now + 60000).toISOString()]) {
     const result = format({ ...sample, bus: { lastLocationUpdate: timestamp } });
     assert.notEqual(result.gps, "GPS On"); assert.equal(result.arrival, "Not available");
   }
