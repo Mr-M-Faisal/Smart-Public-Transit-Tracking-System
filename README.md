@@ -189,11 +189,11 @@ Example Socket.IO event flow (update names to match your code):
 
 ## ☁️ Deployment
 
-- **Frontend:** push to GitHub and import the `frontend` folder in [Vercel](https://vercel.com). Set the environment variables in the Vercel dashboard.
+- **Frontend:** push to GitHub and import the `frontend` folder. Set the environment variables in the Vercel dashboard.
 - **Backend:** deploy the `backend` folder to any Node.js host (Render, Railway, a VPS, etc.). Make sure the host supports **persistent WebSocket connections**; serverless platforms generally do not.
 - **Database:** use MongoDB Atlas and put its connection string in `MONGODB_URI`.
 
-🌐 **Live app:** https://main.d1h2a231vh6m10.amplifyapp.com/driver/dashboard
+🌐 **Live app:** https://main.d1h2a231vh6m10.amplifyapp.com/
 
 ## 🗺️ Roadmap
 
@@ -221,11 +221,11 @@ Contributions, issues and feature requests are welcome!
 
 | Name | Role | GitHub |
 | --- | --- | --- |
-| **Hussnain** | _Your role_ | [@hussnain-stack14](https://github.com/hussnain-stack14) |
-| _Teammate name_ | _Role_ | [@username](https://github.com/username) |
-| _Teammate name_ | _Role_ | [@username](https://github.com/username) |
+| **Hussnain ALI** | Backend Developer | [@hussnain-stack14](https://github.com/hussnain-stack14) |
+| **Syed Najaf Turab** | Frontend Developer | [@username](https://github.com/username) |
+| **Muhammad Faisal** | Cloud engineer | [@Mr-M-Faisal](https://github.com/Mr-M-Faisal) |
 
-**Supervisor:** _Add supervisor name_
+**Supervisor:** Miss Hina Zafar
 **Institution:** National University of Modern Languages (NUML), Faisalabad Campus
 
 ## 📄 License
