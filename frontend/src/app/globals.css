@@ -1674,7 +1674,7 @@ button:active:not(:disabled), .ui-button:active:not(:disabled) { transform: tran
   .app-experience--driver .premium-card:hover { transform: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  html:focus-within { scroll-behavior: smooth; }
+  html:focus-within { scroll-behavior: auto; }
 }
 /* Restrict decorative motion without touching splash or live map markers. */
 :root[data-data-saver="on"], :root[data-light-effects="true"] { --ui-motion: 0ms; --ui-blur: 0px; }
@@ -2345,3 +2345,256 @@ main h2 { line-height: 1.3; letter-spacing: -.015em; }
 .home-network-action svg { flex: none; }
 .home-network-action:hover { background: var(--primary-dark); }
 :root[data-data-saver="on"] .home-page .home-map-section .home-network-card { background: var(--card) !important; }
+
+/* Native settings reuse the current theme and shared page scrolling. */
+.native-settings { min-width: 0; }
+.native-settings__header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.native-settings__header h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; }
+.native-settings__header > a { display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 12px; }
+.native-settings__profile, .native-settings__row { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 14px 16px; }
+.native-settings__profile > span:nth-child(2), .native-settings__row > span { flex: 1; min-width: 0; }
+.native-settings strong, .native-settings small { display: block; overflow-wrap: anywhere; }
+.native-settings small { margin-top: 3px; font-size: 12px; color: var(--muted); }
+.native-settings__profile, .native-settings__group > div, .native-settings__detail { border: 1px solid var(--border); border-radius: 16px; background: var(--card); overflow: hidden; }
+.native-settings__group { margin-top: 24px; }
+.native-settings__group h2 { margin: 0 12px 8px; font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.native-settings__row + .native-settings__row { border-top: 1px solid var(--border); }
+.native-settings__row > svg:first-child { color: var(--primary-ink); flex-shrink: 0; }
+.native-settings__row strong { font-size: 14px; font-weight: 650; }
+.native-settings__detail { padding: clamp(16px, 4vw, 28px); }
+.native-settings :is(a, button) { transition: background-color 180ms ease, border-color 180ms ease; }
+.native-settings a:hover { background: var(--primary-soft); }
+.native-settings a:active { background: var(--primary-soft-strong); }
+.native-settings a:focus-visible { outline: 2px solid var(--primary); outline-offset: -3px; }
+.public-bottom-nav > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 48px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.app-account-menu :is(a, button), .app-driver-more-menu :is(a, button) { min-height: 44px; }
+.pwa-launch { background: var(--background); }
+.pwa-launch__skip { background: var(--card); }
+:root[data-data-saver="on"] .pwa-launch__cinema { display: none; }
+:root[data-data-saver="on"] .pwa-launch__brand { animation: none; opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .native-settings :is(a, button) { transition: none; }
+}
+
+:root[data-data-saver="on"] .native-settings :is(a, button) { transition: none; }
+.public-bottom-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+
+/* Public header: one shared container, three aligned desktop areas. */
+.legacy-navbar.public-header {
+  position: fixed; inset: 0 0 auto; z-index: 800; height: 66px;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--app-shell-surface, var(--background)) !important;
+  box-shadow: none; backdrop-filter: none;
+}
+.public-navbar-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: 12px; height: 100%; max-width: 1280px;
+  margin-inline: auto; padding-inline: clamp(16px, 3vw, 32px);
+}
+.public-navbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; width: fit-content; }
+.public-navbar-brand > span { min-width: 0; }
+.public-navbar-brand strong { display: block; font-size: 15px; line-height: 1.25; font-weight: 800; white-space: nowrap; color: var(--foreground); }
+.public-navbar-brand small { display: block; margin-top: 3px; font-size: 10px; line-height: 1.3; font-weight: 600; letter-spacing: .02em; white-space: nowrap; color: var(--muted); }
+.public-navbar-links { display: none; align-items: center; justify-content: center; gap: 6px; }
+.public-navbar-actions { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.public-navbar-links a, .public-navbar-actions > a {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding-inline: 12px; border-radius: 10px; white-space: nowrap; font-size: 13px; font-weight: 650;
+}
+.public-navbar-links a { color: var(--muted); }
+.public-navbar-actions > .public-navbar-register { color: var(--primary-ink); }
+.public-navbar-actions > .public-navbar-signin { background: var(--primary); color: var(--primary-contrast); padding-inline: 16px; }
+.public-navbar-actions .public-install-action { width: 44px; height: 44px; border-radius: 10px; background: var(--card); box-shadow: none; }
+.public-header :is(a, button) { transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease; }
+.public-navbar-register:hover { background: var(--primary-soft); }
+.public-navbar-signin:hover { background: color-mix(in srgb, var(--primary) 90%, var(--foreground)); }
+.public-header :is(a, button):focus-visible, .public-navbar-mobile :is(a, button):focus-visible { outline: 2px solid var(--primary-ink); outline-offset: 3px; }
+.public-navbar-mobile > button { border-radius: 12px; }
+.public-navbar-mobile > button[aria-expanded="true"] { background: var(--primary-soft); color: var(--primary-ink); }
+.public-navbar-account-menu { top: calc(100% + 10px); right: 0; width: min(260px, calc(100vw - 32px)); }
+@media (max-width: 639px) {
+  .public-navbar-actions > .public-navbar-register { display: none; }
+}
+@media (max-width: 1023px) {
+  .public-navbar-mobile { display: grid; }
+  body:has(.public-navbar-mobile) .public-footer { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1024px) {
+  .legacy-navbar.public-header { height: 72px; }
+  .public-navbar-container { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .public-navbar-links { display: flex; }
+  .public-navbar-mobile, .public-navbar-account-menu { display: none; }
+  .legacy-navbar.public-header ~ main { padding-top: calc(72px + 1.5rem) !important; }
+  .legacy-navbar.public-header ~ .cache-safety-notice { margin-top: calc(72px + .75rem); }
+}
+:root[data-data-saver="on"] .public-header :is(a, button) { transition: none; }
+@media (prefers-reduced-motion: reduce) { .public-header :is(a, button) { transition: none; } }
+
+/* Readable driver information, without motion on telemetry updates. */
+.driver-simple-heading { display: flex; align-items: center; gap: 16px; }
+.driver-simple-heading > div { min-width: 0; }
+.driver-simple-heading h2 { font-size: clamp(1.75rem, 6vw, 2.25rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.driver-simple-heading p { font-size: 16px; color: var(--muted); }
+.driver-bus-icon { display: grid; place-items: center; flex-shrink: 0; width: 64px; height: 64px; border-radius: 16px; background: var(--primary-soft); color: var(--primary-ink); }
+.driver-simple-status { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.driver-simple-status > span { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-ink); font-size: 17px; font-weight: 750; }
+.driver-info-boxes { display: grid; gap: 16px; margin-top: 20px; }
+.driver-info-box { display: flex; align-items: flex-start; gap: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--background); min-width: 0; }
+.driver-info-box > svg { color: var(--primary-ink); flex-shrink: 0; }
+.driver-info-box > div { min-width: 0; }
+.driver-info-box dt { font-size: 16px; color: var(--muted); }
+.driver-info-box dd { margin-top: 6px; font-size: clamp(1.25rem, 4vw, 1.6rem); font-weight: 750; line-height: 1.35; overflow-wrap: anywhere; }
+.driver-info-box p { margin-top: 6px; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.driver-location-link { display: flex; align-items: center; min-height: 48px; margin-top: 12px; font-weight: 700; color: var(--primary-ink); }
+.driver-simple-card :is(button, a):focus-visible, .driver-end-dialog button:focus-visible { outline: 3px solid var(--primary-ink); outline-offset: 3px; }
+.driver-end-dialog { margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border: 1px solid var(--border); border-radius: 18px; background: var(--card); color: var(--foreground); }
+.driver-end-dialog::backdrop { background: rgb(0 0 0 / .5); }
+.driver-end-dialog h2 { font-size: 24px; font-weight: 800; }
+.driver-end-dialog p { margin-top: 12px; font-size: 17px; }
+.driver-end-dialog > div { display: grid; gap: 12px; margin-top: 24px; }
+.driver-end-dialog button { min-height: 48px; font-size: 16px; }
+@media (min-width: 480px) { .driver-info-boxes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .driver-info-box--wide { grid-column: 1 / -1; } .driver-end-dialog > div { grid-template-columns: 1fr 1fr; } }
+
+/* Shift-only presentation; dashboard and tracking keep their existing layout. */
+.driver-shift-panel.ui-card {
+  margin-top: 0; padding: 20px; border: 1px solid var(--border);
+  border-radius: 18px; background: var(--card); box-shadow: none;
+  backdrop-filter: none; background-image: none; transform: none;
+}
+.driver-shift-panel::before, .driver-shift-panel::after { display: none; }
+.driver-shift-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.driver-shift-heading > div { flex: 1; min-width: 0; }
+.driver-shift-heading h1 { font-size: 13px; font-weight: 650; color: var(--muted); }
+.driver-shift-heading p { margin-top: 4px; font-size: clamp(26px, 7vw, 34px); line-height: 1.25; font-weight: 800; overflow-wrap: anywhere; }
+.driver-shift-heading > span { font-size: 16px; font-weight: 650; white-space: nowrap; }
+.driver-shift-refresh { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 10px; color: var(--muted); }
+.driver-shift-refresh:hover { background: var(--primary-soft); color: var(--primary-ink); }
+.driver-shift-refresh:disabled { opacity: .5; }
+.driver-shift-panel .driver-info-boxes { display: block; margin-top: 18px; }
+.driver-shift-panel .driver-info-box {
+  padding: 16px 0; gap: 12px; border: 0; border-top: 1px solid var(--border);
+  border-radius: 0; background: transparent;
+}
+.driver-shift-panel .driver-info-box > svg { width: 22px; height: 22px; margin-top: 2px; }
+.driver-shift-panel .driver-info-box dt { font-size: 14px; }
+.driver-shift-panel .driver-info-box dd { margin-top: 4px; font-size: 21px; }
+.driver-shift-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 15px; }
+.driver-shift-footer > span:first-child { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+.driver-shift-footer > span:last-child { color: var(--muted); }
+
+/* Driver pages have distinct task widths and no decorative headings. */
+.driver-page-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.driver-page-heading h1 { font-size: 24px; font-weight: 750; }
+.driver-shift-panel, .driver-home-panel { max-width: 680px; margin-inline: auto; }
+.driver-home-panel { background: var(--card); box-shadow: none; background-image: none; }
+.driver-detail-grid { max-width: 820px; margin-inline: auto; }
+.driver-track-status { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; font-size: 16px; }
+.driver-track-status strong { font-size: 22px; }
+.driver-home-values { margin-block: 20px; }
+.driver-home-values > div { padding-block: 14px; border-top: 1px solid var(--border); }
+.driver-home-values dt { color: var(--muted); font-size: 14px; }
+.driver-home-values dd { margin-top: 5px; font-size: 22px; font-weight: 700; overflow-wrap: anywhere; }
+.driver-primary-link { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 12px; background: var(--primary); color: var(--primary-contrast); font-weight: 700; }
+.driver-primary-link:focus-visible { outline: 3px solid var(--primary-ink); outline-offset: 3px; }
+.driver-track-layout, .driver-track-secondary { display: grid; gap: 16px; min-width: 0; align-items: start; }
+@media (min-width: 1100px) { .driver-track-layout { grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); } }
+
+/* Driver visual scale: use the existing font and semantic theme palette. */
+.app-experience--driver {
+  --driver-title-size: 20px; --driver-bus-size: 24px;
+  --driver-label-size: 13px; --driver-value-size: 16px;
+  --driver-button-size: 15px; --driver-radius: 12px;
+}
+.app-experience--driver [data-driver-tone="success"] { color: var(--success); }
+.app-experience--driver [data-driver-tone="warning"] { color: var(--warning); }
+.app-experience--driver [data-driver-tone="danger"] { color: var(--danger); }
+.app-experience--driver [data-driver-tone="muted"] { color: var(--muted); }
+.app-experience--driver .driver-shift-panel { padding: 20px; border-radius: 16px; }
+.app-experience--driver .driver-shift-heading { gap: 8px; align-items: center; flex-wrap: nowrap; }
+.app-experience--driver .driver-shift-heading h1 { font-size: var(--driver-label-size); font-weight: 500; line-height: 1.5; }
+.app-experience--driver .driver-shift-heading p { font-size: var(--driver-bus-size); font-weight: 700; line-height: 1.3; }
+.app-experience--driver .driver-shift-heading > span { font-size: 13px; font-weight: 600; }
+.app-experience--driver .driver-shift-refresh { flex-shrink: 0; width: 44px; height: 48px; border-radius: var(--driver-radius); }
+.app-experience--driver .driver-shift-refresh svg { width: 18px; height: 18px; stroke-width: 2; }
+.app-experience--driver .driver-shift-panel .driver-info-boxes { margin-top: 16px; }
+.app-experience--driver .driver-shift-panel .driver-info-box { display: grid; grid-template-columns: 20px minmax(0, 1fr); padding: 16px 0; gap: 12px; }
+.app-experience--driver .driver-shift-panel .driver-info-box > svg { width: 20px; height: 20px; margin-top: 0; color: var(--muted); stroke-width: 2; }
+.app-experience--driver .driver-shift-panel .driver-info-box dt { font-size: var(--driver-label-size); font-weight: 500; line-height: 1.5; }
+.app-experience--driver .driver-shift-panel .driver-info-box dd { font-size: var(--driver-value-size); font-weight: 600; line-height: 1.5; margin-top: 4px; }
+.app-experience--driver .driver-shift-footer { font-size: 13px; font-weight: 600; gap: 8px; padding-top: 16px; }
+.app-experience--driver .driver-shift-footer > span:first-child { font-weight: 600; }
+.app-experience--driver .driver-shift-panel > .ui-button { min-height: 48px; font-size: var(--driver-button-size); font-weight: 600; border-radius: var(--driver-radius); box-shadow: none; }
+.app-experience--driver .driver-shift-panel > .ui-button svg { width: 18px; height: 18px; }
+.app-experience--driver .driver-location-link { width: fit-content; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--driver-radius); background: var(--card); font-size: 13px; font-weight: 600; margin-top: 12px; text-decoration: none; }
+
+/* The same scale across driver tasks, without changing their individual layouts. */
+.app-experience--driver .driver-page-heading h1,
+.app-experience--driver .driver-report-heading h1,
+.app-experience--driver .driver-end-dialog h2 { font-size: var(--driver-title-size); font-weight: 600; line-height: 1.4; letter-spacing: normal; }
+.app-experience--driver .driver-home-panel h1,
+.app-experience--driver .driver-track-status strong { font-size: var(--driver-bus-size); font-weight: 700; line-height: 1.3; }
+.app-experience--driver .driver-home-panel > p:first-child,
+.app-experience--driver .driver-home-values dt { font-size: var(--driver-label-size); font-weight: 500; line-height: 1.5; }
+.app-experience--driver .driver-home-values dd { font-size: var(--driver-value-size); font-weight: 600; margin-top: 4px; line-height: 1.5; }
+.app-experience--driver .driver-home-values { margin-block: 16px; }
+.app-experience--driver .driver-home-values > div { padding-block: 16px; }
+.app-experience--driver .driver-track-status { gap: 8px 16px; font-size: 13px; font-weight: 600; }
+.app-experience--driver .app-content main h2 { font-size: 16px; font-weight: 600; line-height: 1.5; }
+.app-experience--driver .driver-end-dialog p { font-size: 16px; line-height: 1.5; }
+.app-experience--driver .app-content :is(.ui-card, form.premium-card) { border-radius: 16px; box-shadow: none; backdrop-filter: none; }
+.app-experience--driver .driver-home-panel::before,
+.app-experience--driver .driver-report-heading::before { display: none; }
+.app-experience--driver .driver-report-heading > p:first-child { display: none; }
+.app-experience--driver .driver-report-heading h1 { margin-top: 0; }
+.app-experience--driver .driver-report-heading > p:last-child { margin-top: 8px; }
+.app-experience--driver .app-content form label { font-size: 13px; font-weight: 500; }
+.app-experience--driver .app-content :is(input, select, textarea) { font-size: 16px; line-height: 1.5; }
+.app-experience--driver .app-content :is(input, select) { min-height: 48px; }
+.app-experience--driver :is(.ui-button, .driver-primary-link) {
+  min-height: 48px; border-radius: var(--driver-radius); font-size: var(--driver-button-size);
+  font-weight: 600; gap: 8px; line-height: 1.4; box-shadow: none;
+  transition: background-color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+.app-experience--driver .ui-button svg { width: 18px; height: 18px; stroke-width: 2; }
+.app-experience--driver :is(.ui-button, .driver-primary-link):hover { transform: none; box-shadow: none; }
+.app-experience--driver :is(.ui-button, .driver-primary-link):active { transform: none; opacity: .88; }
+.app-experience--driver .ui-button:disabled { opacity: .55; box-shadow: none; }
+.app-experience--driver :is(.ui-button, .driver-primary-link)[aria-busy="true"] { cursor: wait; }
+.app-experience--driver :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--primary-ink); outline-offset: 3px; }
+.app-experience--driver .app-header { box-shadow: none; backdrop-filter: none; }
+.app-experience--driver .app-header-inner { gap: 8px; }
+.app-experience--driver .app-brand { gap: 8px; }
+.app-experience--driver .app-brand strong { font-size: 15px; font-weight: 600; letter-spacing: normal; }
+.app-experience--driver .app-brand small { font-size: 11px; font-weight: 500; letter-spacing: normal; }
+.app-experience--driver .app-header-actions { gap: 8px; flex-shrink: 0; }
+.app-experience--driver .app-header-actions :is(.app-icon-button, .app-avatar, .pwa-install-action) { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 12px; box-shadow: none; }
+.app-experience--driver .app-header-actions :is(.app-icon-button, .pwa-install-action) svg { width: 20px; height: 20px; stroke-width: 2; }
+.app-experience--driver .app-bottom-nav { box-shadow: none; backdrop-filter: none; }
+.app-experience--driver .app-bottom-nav .app-nav-link { min-height: 52px; gap: 4px; padding: 4px; font-size: 11px; font-weight: 500; line-height: 1.3; }
+.app-experience--driver .app-nav-link svg { width: 20px; height: 20px; stroke-width: 2; transform: none; }
+.app-experience--driver .app-nav-link { transition: color 160ms ease, background-color 160ms ease; }
+.app-experience--driver .app-nav-link.is-active { font-weight: 600; }
+.app-experience--driver .app-desktop-nav .app-nav-link { min-height: 44px; font-size: 13px; font-weight: 500; }
+.app-experience--driver .driver-detail-grid ol li p:first-child { font-size: 16px; font-weight: 600; }
+.app-experience--driver .driver-detail-grid ol li p:last-child { font-size: 13px; font-weight: 500; }
+.app-experience--driver .driver-track-secondary :is(.text-xs, .text-sm) { font-size: 13px; line-height: 1.5; }
+@media (max-width: 767px) {
+  .app-experience--driver .app-content > div > main { padding: 16px; }
+  .app-experience--driver .app-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 430px) {
+  .app-experience--driver .app-header-actions { gap: 4px; }
+  .app-experience--driver .app-brand strong { font-size: 13px; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+  .app-experience--driver .app-brand > img { width: 32px !important; height: 32px !important; }
+  .app-experience--driver .app-brand small { font-size: 11px; }
+}
+:root[data-data-saver="on"] .app-experience--driver :is(.ui-button, .driver-primary-link, .app-nav-link, .driver-shift-refresh) { transition: none; }
+@media (prefers-reduced-motion: reduce) { .app-experience--driver :is(.ui-button, .driver-primary-link, .app-nav-link, .driver-shift-refresh) { transition: none; } }
+
+/* Keep bus symbols upright; only the directional tip turns around the GPS anchor. */
+.transit-map-marker--bus { position: relative; }
+.transit-map-bus-rotation { position: absolute; inset: 0; pointer-events: none; transition: transform 180ms ease-out; }
+.transit-map-bus-rotation[hidden] { display: none; }
+.transit-map-heading-tip { position: absolute; top: -9px; left: calc(50% - 5px); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--primary-ink); filter: drop-shadow(0 0 1px white); }
+@media (prefers-reduced-motion: reduce) { .transit-map-bus-rotation { transition: none; } }

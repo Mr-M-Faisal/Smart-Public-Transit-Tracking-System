@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { subscribeToSocketEvent } from "../lib/socket/socket";
 
+import { mergeTelemetry } from "../lib/transit/liveTelemetry";
+
 const LIVE_EVENTS = ["locationUpdate", "busLocation", "busUpdate", "etaUpdate", "occupancyUpdate"];
 
 export function useLiveBuses(initialBuses = []) {
@@ -15,7 +17,7 @@ export function useLiveBuses(initialBuses = []) {
         const id = update.id || update._id || update.busId;
         const existing = current.findIndex((bus) => (bus.id || bus._id || bus.busId) === id);
         if (existing < 0) return [...current, update];
-        return current.map((bus, index) => (index === existing ? { ...bus, ...update } : bus));
+        return current.map((bus, index) => (index === existing ? mergeTelemetry(bus, update) : bus));
       });
     }));
     return () => cleanups.forEach((cleanup) => cleanup());

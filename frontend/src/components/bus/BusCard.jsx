@@ -1,14 +1,20 @@
+"use client";
 import Link from "../common/SmartLink";
 import { BusFront, Clock3, MapPin, Users } from "lucide-react";
 import { Badge } from "../common/Badge";
 import { Card } from "../common/Card";
 
+import { hasFreshTelemetry } from "../../lib/transit/liveTelemetry";
+import { useTelemetryNow } from "../../hooks/useTelemetryNow";
+
 const occupancyTone = { Available: "success", Limited: "warning", Full: "danger" };
 
 export function BusCard({ bus, onSelect, selected = false }) {
+  const now = useTelemetryNow();
+  const fresh = hasFreshTelemetry(bus, now);
   const operating = bus.status === "active" || bus.status === "Active" || ["On Time", "Delayed", "Arriving"].includes(bus.status);
   const liveDetails = [
-    !bus.isSaved && bus.eta && { icon: Clock3, label: "ETA", value: bus.eta },
+    fresh && bus.eta && { icon: Clock3, label: "ETA", value: bus.eta },
     !bus.isSaved && bus.nextStop && { icon: MapPin, label: "Next", value: bus.nextStop },
     !bus.isSaved && (bus.occupancy || bus.availableSeats != null) && { icon: Users, label: "Seats", value: bus.occupancy || `${bus.availableSeats} available`, tone: occupancyTone[bus.occupancy] || "neutral" },
   ].filter(Boolean);
@@ -22,7 +28,7 @@ export function BusCard({ bus, onSelect, selected = false }) {
         <div className="min-w-0 flex-1 p-3">
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 truncate text-[11px] font-extrabold uppercase tracking-[0.11em] text-[var(--primary-ink)]">{bus.routeName || bus.route || "Transit route"}</p>
-            <Badge tone={operating ? "success" : "neutral"}>{bus.isSaved ? "Last known" : operating ? "Live" : "Off"}</Badge>
+            <Badge tone={fresh ? "success" : "neutral"}>{fresh ? "Live" : operating || bus.isSaved ? "Last known" : "Off"}</Badge>
           </div>
           <h3 className="mt-1 text-base font-bold leading-tight text-[var(--foreground)]">{bus.number || bus.busNumber}</h3>
           {bus.directionLabel && <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{bus.directionLabel}</p>}

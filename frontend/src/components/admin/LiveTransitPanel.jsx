@@ -8,6 +8,9 @@ import { Card } from "../common/Card";
 import { CardBackdrop } from "../common/CardBackdrop";
 import { EmptyState } from "../common/EmptyState";
 
+import { hasFreshTelemetry } from "../../lib/transit/liveTelemetry";
+import { useTelemetryNow } from "../../hooks/useTelemetryNow";
+
 const statusTones = {
   active: "success",
   idle: "warning",
@@ -15,6 +18,7 @@ const statusTones = {
 };
 
 export function LiveTransitPanel({ buses = [], loading }) {
+  const now = useTelemetryNow();
   if (loading) {
     return (
       <Card treatment="operational" className="flex h-full flex-col p-5 xl:min-h-[460px]">
@@ -46,7 +50,7 @@ export function LiveTransitPanel({ buses = [], loading }) {
             <h2 className="text-base font-bold text-[var(--foreground)]">Live Fleet Status</h2>
           </div>
           <p className="mt-0.5 text-xs text-[var(--muted)]">
-            Real-time telemetry and capacity metrics
+            Duty status, GPS freshness and capacity
           </p>
         </div>
         <Badge tone={activeCount > 0 ? "success" : "neutral"} className="relative z-10 shrink-0">
@@ -82,7 +86,7 @@ export function LiveTransitPanel({ buses = [], loading }) {
                         {bus.busNumber}
                       </span>
                       <Badge key={bus.status} tone={statusTones[bus.status] || "neutral"} className="live-transit-value text-[10px] px-1.5 py-0.5">
-                        {bus.status || "idle"}
+                        {bus.status || "idle"} / {hasFreshTelemetry(bus, now) ? "Fresh GPS" : "Last known GPS"}
                       </Badge>
                     </div>
                     <p className="text-xs text-[var(--muted)] mt-0.5">{routeName}</p>

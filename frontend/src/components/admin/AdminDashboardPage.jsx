@@ -17,6 +17,8 @@ import { AnalyticsSection } from "./AnalyticsSection";
 import { ReportsWidget } from "./ReportsWidget";
 import { QuickActions } from "./QuickActions";
 
+import { mergeTelemetry } from "../../lib/transit/liveTelemetry";
+
 const emptyList = [];
 const groups = { overview: ['overview'], analytics: ['bookings', 'reports'], transit: ['buses', 'routes', 'stops', 'occupancy'] };
 const initialSections = Object.fromEntries(Object.values(groups).flat().map((name) => [name, { status: 'loading' }]));
@@ -30,7 +32,7 @@ function Dashboard({ profile }) {
   const socket = useSocket();
   const liveUpdates = useLiveBuses([]);
   const [sections, setSections] = useState(initialSections);
-  const [connection, setConnection] = useState('connecting');
+  const [connection, setConnection] = useState(socket.connected ? 'live' : 'connecting');
   const request = useRef(null);
   const [accessError, setAccessError] = useState(false);
   const load = useCallback(() => {
@@ -69,13 +71,20 @@ function Dashboard({ profile }) {
     };
   }, [socket]);
 
+  useEffect(() => {
+    const watch = () => buses.forEach(bus => socket.emit("watchBus", bus._id));
+    socket.on("connect", watch);
+    if (socket.connected) watch();
+    return () => socket.off("connect", watch);
+  }, [buses, socket]);
+
   // Merge live socket telemetry into buses state
   const liveBuses = useMemo(() => {
     return buses.map((bus) => {
       const update = liveUpdates.find(
         (item) => (item.id || item._id || item.busId)?.toString() === bus._id?.toString()
       );
-      if (!update) return bus;
+      if (!update || mergeTelemetry(bus, update) === bus) return bus;
 
       return {
         ...bus,

@@ -1,6 +1,6 @@
 /* Public shell and public transit snapshots only. Private sessions, bookings,
    live sockets, map tiles, and mutations are deliberately never cached. */
-const SHELL_CACHE = "smart-safar-shell-v11";
+const SHELL_CACHE = "smart-safar-shell-v12";
 const TRANSIT_CACHE = "smart-safar-transit-v8";
 const STATIC_ASSETS = [
   "/",
@@ -8,11 +8,13 @@ const STATIC_ASSETS = [
   "/live-map",
   "/offline.html",
   "/manifest.webmanifest",
-  "/images/logo.png",
+  "/icons/brand-128-v2.png",
   "/smart-safar-launch-bus.svg",
-  "/icon-192x192.png",
-  "/icon-512x512.png",
-  "/apple-touch-icon.png",
+  "/icons/app-192-v2.png",
+  "/icons/maskable-512-v2.png",
+  "/icons/favicon-32-v2.png",
+  "/icons/app-512-v2.png",
+  "/icons/apple-180-v2.png",
 ];
 
 function isPublicPage(url) {
@@ -46,7 +48,18 @@ function isStaticAsset(url) {
 
 function normalizedCacheRequest(request) {
   const url = new URL(request.url);
-  return new Request(url.origin + url.pathname + url.search, { method: "GET" });
+  if (isFlightRequest(request, url)) {
+    // The cache key includes the router context: never replay a partial Flight
+    // response into a different route tree or confuse it with an HTML document.
+    url.searchParams.delete("_rsc");
+    url.searchParams.set("__safar_flight", JSON.stringify([
+      request.headers.get("Next-Router-State-Tree"),
+      request.headers.get("Next-Router-Prefetch"),
+      request.headers.get("Next-Router-Segment-Prefetch"),
+      request.headers.get("Next-Url"),
+    ]));
+  }
+  return new Request(url.toString(), { method: "GET", headers: request.headers });
 }
 
 async function cacheFirst(request, cacheName, fallback) {

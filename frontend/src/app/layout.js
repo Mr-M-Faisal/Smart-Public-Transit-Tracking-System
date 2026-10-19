@@ -19,10 +19,11 @@ export const metadata = {
   description: "Smart Public Transit for Faisalabad",
   icons: {
     icon: [
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/favicon-32-v2.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/app-192-v2.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/app-512-v2.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/icons/apple-180-v2.png", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Smart Safar" },
 };
@@ -35,7 +36,6 @@ export default function RootLayout({ children }) {
       lang="en"
       data-theme="blue"
       suppressHydrationWarning
-      data-scroll-behavior="smooth"
       className={`${jakarta.variable} h-full antialiased`}
     >
       <head><script dangerouslySetInnerHTML={{ __html: '(function(){try{var d=document.documentElement,t=localStorage.getItem("smart-safar-theme-v1"),a=localStorage.getItem("smart-safar-appearance-v1")||"system",dark=a==="dark"||(a==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(t==="orange")d.dataset.theme="orange";d.dataset.appearancePreference=["light","dark","system"].includes(a)?a:"system";d.dataset.appearance=dark?"dark":"light";var m=localStorage.getItem("smart-safar-data-saver")||"automatic",c=navigator.connection;d.dataset.dataSaver=(m==="on"||(m!=="off"&&c&&(c.saveData||["slow-2g","2g","3g"].includes(c.effectiveType))))?"on":"off"}catch(e){}})()' }} /></head>

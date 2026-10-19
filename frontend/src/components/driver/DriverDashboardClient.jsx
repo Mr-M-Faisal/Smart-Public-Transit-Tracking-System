@@ -1,7 +1,8 @@
 "use client";
-
+import { usePathname } from "next/navigation";
 import DriverDashboardPage from "./DriverDashboardPage";
-
-export default function DriverDashboardClient({ view = "overview" }) {
-  return <DriverDashboardPage view={view} />;
+const views = { dashboard: "overview", shift: "shift", route: "route", tracking: "tracking", seats: "seats" };
+export default function DriverDashboardClient() {
+  const pathname = usePathname();
+  return <DriverDashboardPage view={views[pathname.split("/").pop()] || "overview"} />;
 }

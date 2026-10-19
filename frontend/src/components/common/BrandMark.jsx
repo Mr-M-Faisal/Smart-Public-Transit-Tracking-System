@@ -3,9 +3,9 @@ import Image from "next/image";
 export function BrandMark({ size = 40, className = "", priority = false }) {
   return (
     <Image
-      src="/images/logo.png"
+      src="/icons/brand-128-v2.png"
       unoptimized
-      style={{ width: size, height: size, objectFit: "cover" }}
+      style={{ width: size, height: size, objectFit: "contain" }}
       width={size}
       height={size}
       alt=""

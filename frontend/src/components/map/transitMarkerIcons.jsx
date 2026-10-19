@@ -40,10 +40,10 @@ function createTransitIcon({ type, SvgComponent, iconSize, iconAnchor, popupAnch
   return L.divIcon({ className: "transit-map-icon", html, iconSize, iconAnchor, popupAnchor });
 }
 
-export function createBusMapIcon({ heading = 0, selected = false, stale = false } = {}) {
+export function createBusMapIcon({ heading = null, selected = false, stale = false } = {}) {
   return createTransitIcon({
     type: `bus${selected ? " bus--selected" : ""}${stale ? " bus--stale" : ""}`,
-    SvgComponent: () => <span className="transit-map-bus-rotation" style={{ transform: `rotate(${heading || 0}deg)` }}><BusFront size={22} strokeWidth={2} /></span>,
+    SvgComponent: () => <><BusFront size={22} strokeWidth={2} /><span hidden={heading == null} className="transit-map-bus-rotation" style={{ transform: `rotate(${heading || 0}deg)` }}><span className="transit-map-heading-tip" /></span></>,
     iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20],
   });
 }

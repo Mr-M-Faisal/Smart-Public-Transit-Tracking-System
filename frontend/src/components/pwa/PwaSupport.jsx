@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { subscribeLaunch, launchSnapshot, serverLaunchSnapshot, finishLaunch, clearNavigationHandoff } from "../../lib/pwa/launch";
 import { Wifi, WifiOff, X } from "lucide-react";
 import { useDataSaver } from "../../hooks/useDataSaver";
 import { useAuth } from "../../hooks/useAuth";
@@ -57,8 +58,7 @@ export function PwaSupport() {
   const [appInstalled, setInstalled] = useState(false);
   const installed = standalone || appInstalled;
   const [showIosHint, setShowIosHint] = useState(false);
-  const [launchFinished, setLaunchFinished] = useState(false);
-  const showLaunch = standalone && !launchFinished;
+  const showLaunch = useSyncExternalStore(subscribeLaunch, launchSnapshot, serverLaunchSnapshot);
   const installPromptDismissedRef = useRef(false);
   const iosHintDismissedRef = useRef(false);
   const connectivityRef = useRef(null);
@@ -88,17 +88,6 @@ export function PwaSupport() {
     }
   }, [installPrompt, installed]);
 
-  useEffect(() => {
-    if (!showLaunch) return undefined;
-    const finish = () => setLaunchFinished(true);
-    // This root-mounted sequence runs once per PWA launch, never on route
-    // changes. Reduced-motion users receive the static brand reveal instead.
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const completionTimer = window.setTimeout(finish, reducedMotion ? 320 : 1400);
-    return () => {
-      window.clearTimeout(completionTimer);
-    };
-  }, [showLaunch]);
 
   useEffect(() => {
     const clearReconnectTimers = () => {
@@ -194,10 +183,12 @@ export function PwaSupport() {
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator) || serviceWorkerRegistrationRef.current) return undefined;
-    serviceWorkerRegistrationRef.current = true;
-    const register = () => navigator.serviceWorker.register("/service-worker.js", { scope: "/", updateViaCache: "none" }).catch(() => {
+    const register = () => {
+      serviceWorkerRegistrationRef.current = true;
+      return navigator.serviceWorker.register("/service-worker.js", { scope: "/", updateViaCache: "none" }).catch(() => {
       // A failed registration must never affect transit data or the app shell.
-    });
+      serviceWorkerRegistrationRef.current = false;
+    }); };
     if (document.readyState === "complete") register();
     else window.addEventListener("load", register, { once: true });
     return () => window.removeEventListener("load", register);
@@ -231,25 +222,14 @@ export function PwaSupport() {
   }, [dataSaver]);
 
   useEffect(() => {
+    // Successful client navigation must not leave a marker for a future launch.
+    clearNavigationHandoff();
     if (!window.navigator.onLine || !isOfflinePublicPath(pathname)) return;
     fetch(pathname, { headers: { Accept: "text/html" } }).catch(() => {
       // The route remains usable online even when warming its offline document fails.
     });
   }, [pathname]);
 
-  useEffect(() => {
-    const useCachedDocument = (event) => {
-      if (window.navigator.onLine || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const link = event.target.closest?.("a[href]");
-      if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
-      const target = new URL(link.href, window.location.href);
-      if (target.origin !== window.location.origin || !isOfflinePublicPath(target.pathname)) return;
-      event.preventDefault();
-      window.location.assign(target.pathname + target.search + target.hash);
-    };
-    document.addEventListener("click", useCachedDocument, true);
-    return () => document.removeEventListener("click", useCachedDocument, true);
-  }, []);
 
   function dismissInstallPrompt() {
     installPromptDismissedRef.current = true;
@@ -262,11 +242,11 @@ export function PwaSupport() {
   }
 
   function skipLaunch() {
-    setLaunchFinished(true);
+    finishLaunch();
   }
 
   return <>
-    {showLaunch && <section className="pwa-launch" role="dialog" aria-label="Opening Smart Safar"><button type="button" className="pwa-launch__skip" onClick={skipLaunch}>Skip animation</button><div className="pwa-launch__scene"><div className="pwa-launch__cinema" aria-hidden="true"><span className="pwa-launch__horizon" /><span className="pwa-launch__road"><i /><i /><i /></span><Image className="pwa-launch__bus" src="/smart-safar-launch-bus.svg" width={420} height={180} alt="" priority /><span className="pwa-launch__glow" /><span className="pwa-launch__trail"><i /><i /><i /></span><svg className="pwa-launch__route" viewBox="0 0 340 96" fill="none" focusable="false"><path d="M12 72C64 72 72 22 128 22c59 0 48 52 106 52 40 0 56-26 94-43" pathLength="1" /><path d="M16 83c44 0 53-40 107-40 50 0 53 35 104 35 42 0 62-29 97-36" pathLength="1" /></svg></div><div className="pwa-launch__brand"><Image src="/images/logo.png" unoptimized style={{ width: 56, height: 56, objectFit: "cover" }} width={56} height={56} alt="" priority /><strong>Smart Safar</strong><p>Smart Public Transit for Faisalabad</p></div></div></section>}
+    {showLaunch && <section className="pwa-launch" role="dialog" aria-label="Opening Smart Safar"><button type="button" className="pwa-launch__skip" onClick={skipLaunch}>Skip animation</button><div className="pwa-launch__scene"><div className="pwa-launch__cinema" aria-hidden="true"><span className="pwa-launch__horizon" /><span className="pwa-launch__road"><i /><i /><i /></span><Image className="pwa-launch__bus" src="/smart-safar-launch-bus.svg" width={420} height={180} alt="" priority /><span className="pwa-launch__glow" /><span className="pwa-launch__trail"><i /><i /><i /></span><svg className="pwa-launch__route" viewBox="0 0 340 96" fill="none" focusable="false"><path d="M12 72C64 72 72 22 128 22c59 0 48 52 106 52 40 0 56-26 94-43" pathLength="1" /><path d="M16 83c44 0 53-40 107-40 50 0 53 35 104 35 42 0 62-29 97-36" pathLength="1" /></svg></div><div className="pwa-launch__brand"><Image src="/icons/brand-128-v2.png" unoptimized style={{ width: 56, height: 56, objectFit: "contain" }} width={56} height={56} alt="" priority /><strong>Smart Safar</strong><p>Smart Public Transit for Faisalabad</p></div></div></section>}
     {!online && <aside className="pwa-connectivity pwa-offline" role="status" aria-live="polite"><WifiOff size={18} aria-hidden="true" /><span><strong>Offline</strong><small>Showing saved transit information where it is available.</small></span></aside>}
     {showBackOnline && online && <aside className="pwa-connectivity pwa-online" role="status" aria-live="polite"><Wifi size={18} aria-hidden="true" /><span><strong>Back online</strong><small>Live transit updates are reconnecting.</small></span></aside>}
     {(bookingSync.syncing || bookingSync.pending || bookingSync.attention) && <aside className="pwa-connectivity pwa-sync-status" role="status" aria-live="polite"><Wifi size={18} aria-hidden="true" /><span><strong>{bookingSync.attention ? `${bookingSync.attention} booking request${bookingSync.attention === 1 ? "" : "s"} need attention` : bookingSync.syncing ? "Synchronizing booking requests" : `Offline: ${bookingSync.pending} booking request${bookingSync.pending === 1 ? "" : "s"} pending`}</strong><small>{bookingSync.attention ? "Review the request when you are ready." : "A seat is not reserved until Smart Safar confirms it."}</small></span></aside>}
