@@ -12,7 +12,7 @@ const stoppedState = {
 
 const startingState = {
   state: "starting",
-  status: "Waiting for GPS permission and location...",
+  status: "GPS Starting",
   error: "",
 };
 
@@ -38,7 +38,7 @@ export function DriverLocationControl({ bus, enabled, onUpdate, onStatusChange }
       queueMicrotask(() => report({
         state: "error",
         status: "Location unavailable",
-        error: "Location sharing requires HTTPS and a browser with geolocation support.",
+        error: "Location is unavailable. Open the secure Smart Safar site in your browser.",
       }));
       return () => { active = false; };
     }
@@ -57,13 +57,13 @@ export function DriverLocationControl({ bus, enabled, onUpdate, onStatusChange }
         }, { signal: controller.signal });
         if (active) {
           onUpdate(updated);
-          report({ state: "sharing", status: "Location sharing active", error: "" });
+          report({ state: "sharing", status: "GPS On", error: "" });
         }
       } catch (requestError) {
         if (active) {
           report({
             state: "error",
-            status: "Location update failed",
+            status: "GPS Weak",
             error: getLocationRequestError(requestError),
           });
         }
@@ -77,7 +77,7 @@ export function DriverLocationControl({ bus, enabled, onUpdate, onStatusChange }
         state: permissionDenied ? "permission-denied" : "error",
         status: "Location unavailable",
         error: permissionDenied
-          ? "Location permission is required for live bus tracking."
+          ? "Allow location in your browser settings, then try again."
           : locationError.code === 3
             ? "Finding your location timed out. Try again with a clear GPS signal."
             : "Your device cannot determine its location. Check GPS settings and try again.",
@@ -102,8 +102,8 @@ export function DriverLocationControl({ bus, enabled, onUpdate, onStatusChange }
   return (
     <section className="mt-3 border-t border-[var(--border)] pt-3" aria-label="Live location controls">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[var(--muted)]" role="status">{!enabled ? "Start your shift to share location." : gps.state === "sharing" ? `Last location update: ${bus.lastLocationUpdate ? new Date(bus.lastLocationUpdate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Not received"}` : gps.status}</p>
-        {canRetry && <Button type="button" variant="secondary" className="min-h-11" onClick={retryLocation}>Retry GPS</Button>}
+        <p className="text-base text-[var(--muted)]" role="status">{!enabled ? "Start your shift to share location." : gps.state === "sharing" ? `Last location update: ${bus.lastLocationUpdate ? new Date(bus.lastLocationUpdate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Not received"}` : gps.status}</p>
+        {canRetry && <Button type="button" variant="secondary" className="min-h-12" onClick={retryLocation}>{gps.state === "permission-denied" ? "Allow Location" : "Retry GPS"}</Button>}
       </div>
       {gps.error && <p role="alert" className="mt-2 break-words text-sm text-[var(--danger)]">{gps.error}</p>}
     </section>
@@ -111,8 +111,6 @@ export function DriverLocationControl({ bus, enabled, onUpdate, onStatusChange }
 }
 
 function getLocationRequestError(error) {
-  const backendMessage = typeof error.response?.data?.message === "string" ? error.response.data.message : "";
-  if (backendMessage) return backendMessage;
   if (!error.response) return "Unable to send your location. Check your connection and try again.";
   if (error.response.status === 401) return "Your session has expired. Sign in again.";
   if (error.response.status === 403) return "You no longer have permission to update this bus. Refresh your dashboard.";

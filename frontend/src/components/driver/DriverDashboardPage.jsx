@@ -6,7 +6,6 @@ import { RefreshCw } from "lucide-react";
 import { Navbar } from "../navigation/Navbar";
 import { Footer } from "../navigation/Footer";
 import { Button } from "../common/Button";
-import { Badge } from "../common/Badge";
 import { Card } from "../common/Card";
 import { CardBackdrop } from "../common/CardBackdrop";
 import { EmptyState } from "../common/EmptyState";
@@ -56,6 +55,7 @@ function DriverOperations({ user, view }) {
   const [returnError, setReturnError] = useState("");
   const [shiftBusy, setShiftBusy] = useState("");
   const [shiftError, setShiftError] = useState("");
+  const [shiftMessage, setShiftMessage] = useState("");
   const [gpsStatus, setGpsStatus] = useState({ state: "stopped", message: "" });
   const [passengerLocations, setPassengerLocations] = useState([]);
   const [passengerLoading, setPassengerLoading] = useState(false);
@@ -312,8 +312,10 @@ function DriverOperations({ user, view }) {
     shiftInFlight.current = true;
     setShiftBusy("starting");
     setShiftError("");
+    setShiftMessage("");
     try {
       const result = await busService.startShift();
+      setShiftMessage("Shift started.");
       setGpsStatus({ state: "starting", message: "" });
       setData((current) => ({
         ...current,
@@ -336,8 +338,10 @@ function DriverOperations({ user, view }) {
     shiftInFlight.current = true;
     setShiftBusy("ending");
     setShiftError("");
+    setShiftMessage("");
     try {
       const result = await busService.endShift();
+      setShiftMessage("Shift ended.");
       setData((current) => ({
         ...current,
         profile: { ...current.profile, activeShift: null },
@@ -413,18 +417,18 @@ function DriverOperations({ user, view }) {
         <div className="relative z-10 min-w-0"><p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--primary-ink)]">Driver operations</p><h1 className="mt-1 text-2xl font-bold">{viewTitle}</h1><p className="mt-1 break-words text-sm text-[var(--muted)]">{profile.name}</p></div>
         <div className="relative z-10">{retry}</div>
       </header>
-      {bus && !error && view === "shift" && <DriverStatusCard bus={bus} route={route} eta={eta} errors={errors} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} shiftBusy={shiftBusy} shiftError={shiftError} hasRouteAssignment={hasRouteAssignment} gpsStatus={gpsStatus} onShift={shiftActive ? endShift : startShift} returnBusy={returnBusy} returnError={returnError} onReturn={startReturnTrip} />}
+      {bus && !error && (view === "shift" || view === "overview") && <DriverStatusCard bus={bus} route={route} eta={eta} errors={errors} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} shiftBusy={shiftBusy} shiftError={shiftError} shiftMessage={shiftMessage} hasRouteAssignment={hasRouteAssignment} gpsStatus={gpsStatus} onShift={shiftActive ? endShift : startShift} returnBusy={returnBusy} returnError={returnError} onReturn={startReturnTrip} />}
       {loading && !bus ? <SectionSkeleton className="mt-6" variant={view === "tracking" ? "map" : "cards"} label="Loading assigned bus and shift information" /> : error ? <div className="mt-6"><ErrorState title="Driver information unavailable" description={error} action={retry} /></div> : !bus ? <div className="mt-6"><EmptyState title="No Bus Assigned" description="Please contact the administrator to get a bus assigned before starting a shift." /></div> : (
         <>
-          {view === "overview" && <><DriverOverview bus={bus} route={route} shiftActive={shiftActive} directionLabel={directionLabel} /><section className="driver-overview-actions mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Driver tools">
+          {view === "overview" && <><section className="driver-overview-actions mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Driver tools">
             <Link href="/driver/shift"><strong>Shift</strong><span>Start or end your shift</span></Link>
             <Link href="/driver/route"><strong>Route</strong><span>View assigned stops</span></Link>
             <Link href="/driver/tracking"><strong>Live tracking</strong><span>Share location and view map</span></Link>
             <Link href="/driver/seats"><strong>Seats</strong><span>Manage individual seats</span></Link>
           </section></>}
-          {view === "shift" && <section className="driver-section-note mt-4"><p>Shift controls use your existing assigned bus and active-shift state. Start location sharing from Live Tracking after the shift begins.</p><Link href="/driver/tracking">Open live tracking</Link></section>}
+          {view === "shift" && <section className="driver-section-note mt-4">{!shiftActive && <p>Start your shift, then open tracking.</p>}<Link href="/driver/tracking">Open live tracking</Link></section>}
           {view === "route" && <div className="driver-detail-grid mt-4"><DriverRouteCard route={route} stops={directionalStops} nextStopId={nextStopId} errors={errors} /></div>}
-          {view === "tracking" && <><DriverTrackingStatus bus={bus} eta={eta} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} gpsStatus={gpsStatus} errors={errors} /><div className="driver-main-grid mt-4 grid items-start gap-4 md:grid-cols-2"><div className="grid gap-4"><DriverMap bus={bus} stops={directionalStops} nextStopId={nextStopId} connection={connection} passengers={passengerLocations} /><Card treatment="operational" className="p-4"><h2 className="font-bold">GPS sharing</h2><DriverLocationControl key={`location-${bus._id}-${activeShift?._id || "inactive"}`} bus={bus} enabled={shiftActive} onUpdate={locationUpdated} onStatusChange={locationStatusChanged} /></Card></div><DriverPassengerPanel active={shiftActive} passengers={passengerLocations} loading={passengerLoading} error={passengerError} onRetry={loadPassengerLocations} /></div></>}
+          {view === "tracking" && <><DriverStatusCard bus={bus} route={route} eta={eta} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} gpsStatus={gpsStatus} errors={errors} /><div className="driver-main-grid mt-4 grid items-start gap-4 md:grid-cols-2"><div className="grid gap-4"><DriverMap bus={bus} stops={directionalStops} nextStopId={nextStopId} connection={connection} passengers={passengerLocations} /><Card treatment="operational" className="p-4"><h2 className="font-bold">GPS sharing</h2><DriverLocationControl key={`location-${bus._id}-${activeShift?._id || "inactive"}`} bus={bus} enabled={shiftActive} onUpdate={locationUpdated} onStatusChange={locationStatusChanged} /></Card></div><DriverPassengerPanel active={shiftActive} passengers={passengerLocations} loading={passengerLoading} error={passengerError} onRetry={loadPassengerLocations} /></div></>}
           {view === "seats" && <Card treatment="operational" className="mt-4 min-w-0 p-5"><h2 className="font-bold">Seats</h2>{seatSyncError && <p role="status" className="mt-3 text-sm text-[var(--warning)]">{seatSyncError}</p>}<DriverSeatControl key={`seats-${bus._id}`} bus={bus} onUpdate={seatsUpdated} shiftActive={shiftActive} /></Card>}
         </>
       )}
@@ -432,26 +436,11 @@ function DriverOperations({ user, view }) {
   );
 }
 
-function DriverOverview({ bus, route, shiftActive, directionLabel }) {
-  return <Card treatment="operational" className="mt-4 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--primary-ink)]">Assigned service</p><h2 className="mt-1 text-xl font-bold">{bus.busNumber}</h2><p className="mt-1 text-sm text-[var(--muted)]">{route?.routeName || "Route unavailable"}{directionLabel ? ` · ${directionLabel}` : ""}</p></div><Badge tone={shiftActive ? "success" : "warning"}>{shiftActive ? "Shift active" : "Shift not started"}</Badge></div><p className="mt-3 text-sm text-[var(--muted)]">Choose a tool below to manage your shift, live tracking, route, or seats.</p></Card>;
-}
-
-function DriverTrackingStatus({ bus, eta, direction, directionLabel, shiftActive, gpsStatus, errors }) {
-  const gpsLabel = !shiftActive ? "Off" : gpsStatus.state === "sharing" ? "Live" : gpsStatus.state === "permission-denied" ? "Permission required" : gpsStatus.state === "error" ? "Location error" : "Starting";
-  return <Card treatment="operational" className="mt-4 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--primary-ink)]">Live tracking</p><h2 className="mt-1 text-xl font-bold">{bus.busNumber}</h2><p className="mt-1 text-sm text-[var(--muted)]">{directionLabel || (direction === "return" ? "Return trip" : "Outbound trip")}</p></div><div className="flex gap-2"><Badge tone={shiftActive ? "success" : "neutral"}>{shiftActive ? "Shift active" : "Shift inactive"}</Badge><Badge tone={gpsStatus.state === "sharing" ? "success" : shiftActive ? "warning" : "neutral"}>GPS: {gpsLabel}</Badge></div></div><dl className="mt-4 grid gap-2 border-t border-[var(--border)] pt-4 text-sm sm:grid-cols-3"><TrackingValue label="Current stop" value={eta?.currentStop?.stopName || "Not reported"} /><TrackingValue label="Next stop" value={errors.eta ? "Unavailable" : eta?.nextStop?.stopName || "Unavailable"} /><TrackingValue label="Arriving in" value={errors.eta ? "Unavailable" : eta?.etaMinutes == null ? "Unavailable" : eta.etaMinutes <= 1 ? "Arriving" : `${Math.round(eta.etaMinutes)} min`} /></dl></Card>;
-}
-
-function TrackingValue({ label, value }) {
-  return <div className="rounded-xl bg-[var(--background)] p-3"><dt className="text-xs text-[var(--muted)]">{label}</dt><dd className="mt-1 break-words font-semibold">{value}</dd></div>;
-}
-
 function SectionError({ label }) {
   return <p role="alert" className="mt-3 text-sm text-[var(--danger)]">Unable to load {label}. Use Refresh dashboard to try again.</p>;
 }
 
 function getShiftRequestError(error, action) {
-  const backendMessage = typeof error.response?.data?.message === "string" ? error.response.data.message : "";
-  if (backendMessage) return backendMessage;
   if (!error.response) return `Unable to ${action} the shift. Check your connection and try again.`;
   if (error.response.status === 401) return "Your session has expired. Sign in again.";
   if (error.response.status === 403) return "Your account is not authorized to manage driver shifts.";
