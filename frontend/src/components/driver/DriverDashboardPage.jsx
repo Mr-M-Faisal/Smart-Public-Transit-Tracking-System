@@ -30,7 +30,7 @@ import { getBusDirection, getDirectionLabel, getStopsInDirection } from "../../l
 import { hasRole, ROLES } from "../../lib/auth/permissions";
 import { getAccessToken } from "../../lib/auth/token";
 
-export default function DriverDashboardPage({ view = "overview" }) {
+export default function DriverDashboardPage({ view = "operations" }) {
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <Navbar />
@@ -424,9 +424,9 @@ function DriverOperations({ user, view }) {
 
   return (
     <>
-      {view !== "shift" && view !== "overview" && <header className="driver-page-heading"><h1>{viewTitle}</h1><button type="button" className="driver-shift-refresh" title="Refresh" aria-label="Refresh driver information" onClick={load} disabled={loading}><RefreshCw size={19} /></button></header>}
+      {view !== "operations" && <header className="driver-page-heading"><h1>{viewTitle}</h1><button type="button" className="driver-shift-refresh" title="Refresh" aria-label="Refresh driver information" onClick={load} disabled={loading}><RefreshCw size={19} /></button></header>}
       {error && bus && !accessIssue && <p role="status" className="mb-4 text-[var(--warning)]">Could not refresh. Showing saved information. Check your internet.</p>}
-      {bus && !accessIssue && (view === "shift" || view === "overview") && <DriverStatusCard overview={view === "overview"} minimal={view === "shift"} onRefresh={load} refreshing={loading} bus={bus} route={route} eta={eta} errors={errors} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} shiftBusy={shiftBusy} shiftError={shiftError} shiftMessage={shiftMessage} hasRouteAssignment={hasRouteAssignment} gpsStatus={gpsStatus} onShift={shiftActive ? endShift : startShift} returnBusy={returnBusy} returnError={returnError} onReturn={startReturnTrip} />}
+      {bus && !accessIssue && view === "operations" && <DriverStatusCard minimal onRefresh={load} refreshing={loading} bus={bus} route={route} eta={eta} errors={errors} direction={direction} directionLabel={directionLabel} shiftActive={shiftActive} shiftBusy={shiftBusy} shiftError={shiftError} shiftMessage={shiftMessage} hasRouteAssignment={hasRouteAssignment} gpsStatus={gpsStatus} onShift={shiftActive ? endShift : startShift} returnBusy={returnBusy} returnError={returnError} onReturn={startReturnTrip} />}
       {loading && !bus ? <SectionSkeleton className="mt-6" variant={view === "tracking" ? "map" : "cards"} label="Loading assigned bus and shift information" /> : error && (!bus || accessIssue) ? <div className="mt-6"><ErrorState title="Driver information unavailable" description={error} action={retry} /></div> : !bus ? <div className="mt-6"><EmptyState title="No Bus Assigned" description="Please contact the administrator to get a bus assigned before starting a shift." /></div> : (
         <>
           {view === "route" && <div className="driver-detail-grid mt-4"><DriverRouteCard canReturn={shiftActive && direction === "outbound" && eta?.terminalReached} onReturn={startReturnTrip} returnBusy={returnBusy} returnError={returnError} direction={direction} currentStopId={eta?.currentStop?._id} route={route} stops={directionalStops} nextStopId={nextStopId} errors={errors} /></div>}
