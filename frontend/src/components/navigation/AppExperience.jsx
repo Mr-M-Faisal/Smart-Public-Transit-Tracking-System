@@ -24,7 +24,6 @@ const commuter = [
 ];
 const driver = [
   { href: "/driver/dashboard", label: "Home", icon: House },
-  { href: "/driver/shift", label: "Shift", icon: History },
   { href: "/driver/route", label: "Route", icon: MapPinned },
   { href: "/driver/tracking", label: "Track", icon: BusFront },
   { href: "/driver/seats", label: "Seats", icon: Ticket },
@@ -246,7 +245,7 @@ export function AppExperience({ children }) {
 
   const role = user.role;
   const items = role === "admin" ? admin : role === "driver" ? driver : commuter;
-  const mobileItems = role === "admin" ? [admin[0], admin[1], admin[2], admin[3], admin[4]] : role === "driver" ? [driver[0], driver[1], driver[3], driver[4], { action: "more", label: "More", icon: MoreHorizontal }] : items;
+  const mobileItems = role === "admin" ? [admin[0], admin[1], admin[2], admin[3], admin[4]] : role === "driver" ? [...driver.slice(0, 4), { action: "more", label: "More", icon: MoreHorizontal }] : items;
   const title = role === "admin" ? "Admin Panel" : role === "driver" ? "Driver Dashboard" : "Smart Safar";
   const initials = user.name?.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "SS";
   const seenAlertIds = readSeenAlertIds(userId, seenVersion);

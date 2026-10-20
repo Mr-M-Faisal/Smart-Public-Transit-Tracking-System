@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SearchInput } from "../../common/SearchInput";
 import { MapPin, Search } from "lucide-react";
 import { Button } from "../../common/Button";
 import { locationSearchService } from "../../../services/locationSearchService";
@@ -63,21 +64,7 @@ export function LocationSearch({ idPrefix, disabled, onSelect }) {
   return <div className="space-y-2">
     <label htmlFor={idPrefix + "-location-search"} className="block text-xs font-semibold">Search Location</label>
     <div role="search" className="flex min-w-0 flex-col gap-2 sm:flex-row">
-      <div className="relative min-w-0 flex-1">
-        <Search size={18} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-        <input
-          id={idPrefix + "-location-search"}
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={disabled || searching}
-          placeholder="Search a location..."
-          autoComplete="off"
-          className="field-input min-w-0 pl-10 text-sm"
-          aria-describedby={idPrefix + "-search-status"}
-        />
-      </div>
+      <SearchInput id={idPrefix + "-location-search"} value={query} onChange={setQuery} onKeyDown={handleKeyDown} disabled={disabled || searching} loading={searching} label="Search Location" placeholder="Search a location..." autoComplete="off" aria-describedby={idPrefix + "-search-status"} />
       <Button type="button" variant="secondary" onClick={search} disabled={disabled || searching} className="min-h-11 shrink-0 gap-2">
         <Search size={16} aria-hidden="true" /> {searching ? "Searching..." : "Search"}
       </Button>

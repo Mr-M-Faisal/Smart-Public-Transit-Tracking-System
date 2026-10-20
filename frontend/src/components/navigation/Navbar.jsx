@@ -13,6 +13,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/live-map", label: "Live Buses" },
   { href: "/routes", label: "Routes" },
+  { href: "/about", label: "About Us" },
 ];
 
 const mobileLinks = [
@@ -29,6 +30,17 @@ export function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef(null);
   const triggerRef = useRef(null);
+  const mobileNavRef = useRef(null);
+  useEffect(() => {
+    const nav = mobileNavRef.current;
+    if (!nav || isAuthenticated) return;
+    const update = () => document.documentElement.style.setProperty("--public-nav-clearance", nav.getBoundingClientRect().height + "px");
+    update();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(update) : null;
+    observer?.observe(nav);
+    window.addEventListener("resize", update);
+    return () => { observer?.disconnect(); window.removeEventListener("resize", update); document.documentElement.style.removeProperty("--public-nav-clearance"); };
+  }, [isAuthenticated]);
   useEffect(() => {
     if (!accountOpen) return;
     const dismiss = event => {
@@ -58,11 +70,11 @@ export function Navbar() {
           <PwaInstallAction className="public-install-action" />
           <Link href="/register" className="public-navbar-register">Create Account</Link>
           <Link href="/login" className="public-navbar-signin">Sign In</Link>
-          {accountOpen && <nav id="public-account-options" className="app-account-menu public-navbar-account-menu" aria-label="Account options"><Link href="/profile" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><Link href="/register" onClick={() => setAccountOpen(false)}>Create Account</Link><Link href="/login" onClick={() => setAccountOpen(false)}>Sign In</Link></nav>}
+          {accountOpen && <nav id="public-account-options" className="app-account-menu public-navbar-account-menu" aria-label="Public navigation and account options"><Link href="/about" aria-current={pathname === "/about" ? "page" : undefined} onClick={() => setAccountOpen(false)}>About Us</Link><Link href="/profile" onClick={() => setAccountOpen(false)}><UserRound size={17} /> Profile</Link><Link href="/settings" onClick={() => setAccountOpen(false)}><Settings size={17} /> Settings</Link><Link href="/register" onClick={() => setAccountOpen(false)}>Create Account</Link><Link href="/login" onClick={() => setAccountOpen(false)}>Sign In</Link></nav>}
         </div>
       </div>
     </header>
-    <nav className="public-bottom-nav public-navbar-mobile" aria-label="Public mobile navigation">{mobileLinks.map(({ href, label, icon: Icon }) => {
+    <nav ref={mobileNavRef} className="public-bottom-nav public-navbar-mobile" aria-label="Public mobile navigation">{mobileLinks.map(({ href, label, icon: Icon }) => {
       const active = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
       return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}><Icon size={20} /><span>{label}</span></Link>;
     })}<button ref={triggerRef} type="button" data-public-account aria-expanded={accountOpen} aria-controls="public-account-options" onClick={() => setAccountOpen(open => !open)}><UserRound size={20} /><span>Account</span></button></nav>

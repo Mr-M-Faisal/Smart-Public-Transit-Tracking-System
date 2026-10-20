@@ -1,3 +1,4 @@
+import { siteOrigin, websiteSchema } from "../lib/seo";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { TransitProvider } from "../components/providers/TransitProvider";
@@ -14,6 +15,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
+  ...(siteOrigin() ? { metadataBase: new URL(siteOrigin()) } : {}),
   applicationName: "Smart Safar",
   title: "Smart Safar Faisalabad",
   description: "Smart Public Transit for Faisalabad",
@@ -39,7 +41,7 @@ export default function RootLayout({ children }) {
       className={`${jakarta.variable} h-full antialiased`}
     >
       <head><script dangerouslySetInnerHTML={{ __html: '(function(){try{var d=document.documentElement,t=localStorage.getItem("smart-safar-theme-v1"),a=localStorage.getItem("smart-safar-appearance-v1")||"system",dark=a==="dark"||(a==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(t==="orange")d.dataset.theme="orange";d.dataset.appearancePreference=["light","dark","system"].includes(a)?a:"system";d.dataset.appearance=dark?"dark":"light";var m=localStorage.getItem("smart-safar-data-saver")||"automatic",c=navigator.connection;d.dataset.dataSaver=(m==="on"||(m!=="off"&&c&&(c.saveData||["slow-2g","2g","3g"].includes(c.effectiveType))))?"on":"off"}catch(e){}})()' }} /></head>
-      <body className="min-h-full flex flex-col"><TransitProvider><AppearancePreference /><VisualPreferences /><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
+      <body className="min-h-full flex flex-col">{websiteSchema() && <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteSchema()).replace(/</g, "\\u003c")}} />}<TransitProvider><AppearancePreference /><VisualPreferences /><AppExperience>{children}</AppExperience><PwaSupport /><ThemeOnboarding /></TransitProvider></body>
     </html>
   );
 }

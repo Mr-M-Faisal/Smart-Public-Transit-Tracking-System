@@ -1,4 +1,4 @@
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Driver Shift | Smart Safar Faisalabad" };
-
-export default function DriverShiftRoute() { return null; }
+// Compatibility only: the persistent driver layout retains authorization and GPS ownership.
+export default function DriverShiftRoute() { redirect("/driver/dashboard"); }

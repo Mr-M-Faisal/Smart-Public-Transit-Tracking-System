@@ -42,4 +42,8 @@ function BusMarkerView({ position, bus, onSelect, selected = false, stale = fals
   if (!position) return null;
   return <Marker ref={markerRef} position={position} title={label} icon={icon} zIndexOffset={selected ? 450 : 300} riseOnHover eventHandlers={{ click: () => onSelect?.(bus) }}><Popup><strong>{label}</strong><p className="mt-1">Map remains north-up. Direction appears when reliable GPS is available.</p></Popup></Marker>;
 }
-export const BusMarker = memo(BusMarkerView);
+export const BusMarker = memo(BusMarkerView, (before, after) =>
+  before.selected === after.selected && before.stale === after.stale && before.onSelect === after.onSelect &&
+  before.position?.[0] === after.position?.[0] && before.position?.[1] === after.position?.[1] &&
+  ["id", "_id", "busId", "name", "number", "busNumber", "isSaved", "status", "lastLocationUpdate", "heading", "accuracy", "speed"].every(key => before.bus?.[key] === after.bus?.[key])
+);

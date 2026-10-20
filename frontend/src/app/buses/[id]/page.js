@@ -1,11 +1,9 @@
+import { publicMetadata } from "../../../lib/seo";
 import BusDetailsRouteClient from "../../../components/bus/BusDetailsRouteClient";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  return {
-    title: `Bus ${id} | Smart Safar Faisalabad`,
-    description: "View live location, ETA and service information for a transit bus.",
-  };
+  return publicMetadata("/buses/" + encodeURIComponent(id), ["Bus Details | Smart Safar", "View available GPS location, arrival estimates and service information for this bus."]);
 }
 
 export default async function BusDetailsRoute({ params }) {

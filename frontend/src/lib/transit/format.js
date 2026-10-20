@@ -25,7 +25,7 @@ export function getEtaLabel(eta) {
 }
 
 export function normalizeBus(bus, eta, routeMap = {}) {
-  const route = typeof bus.route === "object" ? bus.route : routeMap[bus.route];
+  const route = { ...routeMap[getRouteId(bus.route)], ...(typeof bus.route === "object" && bus.route ? bus.route : {}) };
   const direction = eta?.direction === "return" || bus.direction === "return" ? "return" : "outbound";
   const origin = direction === "return" ? route?.endPoint : route?.startPoint;
   const destination = direction === "return" ? route?.startPoint : route?.endPoint;
@@ -33,7 +33,7 @@ export function normalizeBus(bus, eta, routeMap = {}) {
     ...bus,
     id: getTransitId(bus),
     number: bus.busNumber || bus.number || "Transit bus",
-    routeId: getRouteId(route),
+    routeId: route._id || route.id || getRouteId(bus.route),
     route: getRouteName(route),
     routeName: getRouteName(route),
     routeStart: route?.startPoint,

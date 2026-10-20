@@ -9,12 +9,15 @@ function reducedMotionPreferred() {
   return typeof window !== "undefined" && (window.matchMedia("(prefers-reduced-motion: reduce)").matches || navigator.connection?.saveData);
 }
 
-export function MapViewport({ positions = [], focusKey, focusPosition, followPosition, onFollowSuspend, persistViewport = false }) {
+export function MapViewport({ positions = [], focusKey, fitKey = focusKey, focusPosition, followPosition, onFollowSuspend, persistViewport = false, disableAnimation = false }) {
   const map = useMap();
+  const cameraTouched = useRef(false);
+  const fitted = useRef(false);
+  const previousFit = useRef(fitKey);
   const suspendRef = useRef(onFollowSuspend);
   useLayoutEffect(() => { suspendRef.current = onFollowSuspend; }, [onFollowSuspend]);
   useEffect(() => {
-    const suspend = () => { map.stop(); suspendRef.current?.(); };
+    const suspend = () => { cameraTouched.current = true; map.stop(); suspendRef.current?.(); };
     map.on("dragstart", suspend);
     const container = map.getContainer();
     const keyboard = event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "+", "-"].includes(event.key)) suspend(); };
@@ -30,7 +33,7 @@ export function MapViewport({ positions = [], focusKey, focusPosition, followPos
     let active = true;
     readLiveMapState().then((saved) => {
       const viewport = saved?.data?.mapViewport;
-      if (!active || !viewport || restoredViewport.current || !isValidPosition(viewport.center)) return;
+      if (!active || cameraTouched.current || !viewport || restoredViewport.current || !isValidPosition(viewport.center)) return;
       map.setView(viewport.center, Number.isFinite(viewport.zoom) ? viewport.zoom : 13, { animate: false });
       restoredViewport.current = true;
     });
@@ -59,34 +62,32 @@ export function MapViewport({ positions = [], focusKey, focusPosition, followPos
   }, [positions]);
 
   useEffect(() => {
-    const validPositions = positionsRef.current.filter(isValidPosition);
-    let frame;
-    function fit() {
-      map.invalidateSize({ pan: false });
-      if (restoredViewport.current) return;
-      if (!validPositions.length) return;
-      if (validPositions.length === 1) map.setView(validPositions[0], 13, { animate: false });
-      else map.fitBounds(validPositions, { padding: [32, 32], maxZoom: 14, animate: false });
-    }
-    function resized() {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(fit);
-    }
-    resized();
-    const observer = new ResizeObserver(resized);
-    observer.observe(map.getContainer());
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
-  }, [focusKey, map]);
+    const explicit = previousFit.current !== fitKey;
+    previousFit.current = fitKey;
+    if (!explicit && (fitted.current || restoredViewport.current || cameraTouched.current)) return;
+    const valid = positionsRef.current.filter(isValidPosition);
+    if (!valid.length) return;
+    fitted.current = true;
+    if (explicit) cameraTouched.current = true;
+    if (valid.length === 1) map.setView(valid[0], 13, { animate: false });
+    else map.fitBounds(valid, { padding: [32, 32], maxZoom: 14, animate: false });
+  }, [fitKey, positions.length, map]);
 
   useEffect(() => {
-    if (isValidPosition(focusPosition)) map.setView(focusPosition, Math.max(map.getZoom(), 15), { animate: !reducedMotionPreferred(), duration: 0.45 });
+    const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
+
+  useEffect(() => {
+    if (isValidPosition(focusPosition)) { cameraTouched.current = true; map.setView(focusPosition, Math.max(map.getZoom(), 15), { animate: !disableAnimation && !reducedMotionPreferred(), duration: 0.45 }); }
   // A selection changes focusKey; a live location update must not recenter unless follow is on.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusKey, map]);
 
   useEffect(() => {
-    if (isValidPosition(followPosition)) map.panTo(followPosition, { animate: !reducedMotionPreferred(), duration: 0.45 });
-  }, [followPosition, map]);
+    if (isValidPosition(followPosition)) map.panTo(followPosition, { animate: !disableAnimation && !reducedMotionPreferred(), duration: 0.45 });
+  }, [followPosition, map, disableAnimation]);
 
   return null;
 }

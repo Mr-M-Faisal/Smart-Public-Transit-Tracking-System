@@ -6,9 +6,10 @@ import { Button } from "../common/Button";
 import { Card } from "../common/Card";
 import { driverDisplay } from "../../lib/transit/driverDisplay";
 
-export function DriverStatusCard({ minimal = false, overview = false, compact = false, onRefresh, refreshing, bus, route, eta, errors = {}, direction, directionLabel, shiftActive, shiftBusy, shiftError, shiftMessage, hasRouteAssignment, gpsStatus, onShift, returnBusy, returnError, onReturn, children }) {
+export function DriverStatusCard({ minimal = false, compact = false, onRefresh, refreshing, bus, route, eta, errors = {}, direction, directionLabel, shiftActive, shiftBusy, shiftError, shiftMessage, hasRouteAssignment, gpsStatus, onShift, returnBusy, returnError, onReturn, children }) {
   const [now, setNow] = useState(0);
   const dialog = useRef(null);
+  const requestedShift = useRef(null);
   const shiftButton = useRef(null);
   useEffect(() => {
     // Expire old telemetry even when the connection stops delivering updates.
@@ -20,28 +21,18 @@ export function DriverStatusCard({ minimal = false, overview = false, compact = 
   const display = driverDisplay({ bus, eta, shiftActive, gpsStatus, errors, now });
   const busy = Boolean(shiftBusy);
   const gpsTone = display.gps === "GPS On" ? "success" : display.gps === "GPS Weak" || display.gps === "GPS Starting" ? "warning" : gpsStatus?.state === "permission-denied" || gpsStatus?.state === "access-ended" ? "danger" : "muted";
-  const arrival = display.arrival === "Calculating..." ? "Not available" : display.arrival;
   function requestShift() {
     if (busy) return;
-    if (shiftActive) dialog.current?.showModal();
-    else onShift();
+    requestedShift.current = shiftActive;
+    dialog.current?.showModal();
   }
-  function confirmEnd() {
+  function confirmShift() {
     dialog.current?.close();
-    if (shiftActive && !busy) onShift();
+    if (requestedShift.current === shiftActive && !busy && (shiftActive || hasRouteAssignment)) onShift();
   }
   if (compact) return <div className="driver-track-status" role="status"><strong>{bus.busNumber}</strong><span data-driver-tone={gpsTone}>{display.gps}</span><span data-driver-tone={shiftActive ? "success" : "muted"}>{shiftActive ? "On Duty" : "Off Duty"}</span></div>;
-  if (overview) return <Card treatment="operational" className="driver-home-panel p-5">
-    <p className="text-sm text-[var(--muted)]">Assigned Bus</p><h1 className="mt-1 text-3xl font-extrabold">{bus.busNumber}</h1>
-    <p className="mt-2 text-base">{route?.routeName || "Route unavailable"}</p>
-    <div className="driver-track-status mt-3"><span data-driver-tone={shiftActive ? "success" : "muted"}>{shiftActive ? "On Duty" : "Off Duty"}</span><span data-driver-tone={gpsTone}>{display.gps}</span></div>
-    <dl className="driver-home-values"><div><dt>Next Stop</dt><dd>{display.nextStop}</dd></div><div><dt>Arrival Time</dt><dd>{arrival}</dd></div></dl>
-    {shiftActive ? <Link href="/driver/tracking" className="driver-primary-link">Open Live Tracking</Link> : <Button type="button" className="min-h-12 w-full" disabled={busy || !hasRouteAssignment} onClick={requestShift}>{busy ? "Starting..." : "Start Shift"}</Button>}
-    {shiftError && <p role="alert" className="mt-3 text-[var(--danger)]">{shiftError}</p>}
-    {shiftMessage && <p role="status" className="mt-3">{shiftMessage}</p>}
-  </Card>;
-  return <Card treatment="operational" id="driver-shift" aria-label="Your bus and shift" className={minimal ? "driver-status-card driver-simple-card driver-shift-panel" : "driver-status-card driver-simple-card mt-4 p-4 sm:p-6"}>
-    {minimal ? <header className="driver-shift-heading"><div><h1>Assigned Bus</h1><p>{bus.busNumber}</p></div><span data-driver-tone={shiftActive ? "success" : "muted"}>{shiftActive ? "On Duty" : "Off Duty"}</span><button type="button" className="driver-shift-refresh" aria-label="Refresh shift information" title="Refresh shift information" disabled={refreshing || busy} onClick={onRefresh}><RefreshCw size={19} aria-hidden="true" /></button></header> : <div className="driver-simple-heading"><span className="driver-bus-icon"><BusFront size={40} aria-hidden="true" /></span><div><p>Assigned Bus</p><h2>{bus.busNumber}</h2><p>{errors.route ? "Route unavailable" : route?.routeName || bus.route?.routeName || "No route assigned"}</p></div></div>}
+  return <Card treatment="operational" id="driver-shift" aria-label="Your bus and shift" className={minimal ? "driver-status-card driver-simple-card driver-shift-panel driver-operations-panel" : "driver-status-card driver-simple-card mt-4 p-4 sm:p-6"}>
+    {minimal ? <header className="driver-shift-heading"><div><p className="driver-assigned-label">Assigned Bus</p><h1>{bus.busNumber}</h1><p className="driver-assigned-route">{errors.route ? "Route unavailable" : route?.routeName || bus.route?.routeName || "No route assigned"}</p></div><span data-driver-tone={shiftActive ? "success" : "muted"}>{shiftActive ? "On Duty" : "Off Duty"}</span><button type="button" className="driver-shift-refresh" aria-label="Refresh shift information" title="Refresh shift information" disabled={refreshing || busy} onClick={onRefresh}><RefreshCw size={19} aria-hidden="true" /></button></header> : <div className="driver-simple-heading"><span className="driver-bus-icon"><BusFront size={40} aria-hidden="true" /></span><div><p>Assigned Bus</p><h2>{bus.busNumber}</h2><p>{errors.route ? "Route unavailable" : route?.routeName || bus.route?.routeName || "No route assigned"}</p></div></div>}
     {!minimal && <div className="driver-simple-status" role="status"><span><Clock3 size={20} aria-hidden="true" />{shiftActive ? "On Duty" : "Off Duty"}</span><span><LocateFixed size={20} aria-hidden="true" />{display.gps}</span></div>}
     <dl className="driver-info-boxes">
       <StatusDetail icon={MapPin} label="Current Stop" value={display.currentLocation} wide description={!minimal && display.currentLocation !== "Not reported" ? "Last reported stop" : null} />
@@ -62,7 +53,7 @@ export function DriverStatusCard({ minimal = false, overview = false, compact = 
     {!minimal && returnError && <p role="alert" className="mt-3 text-base text-[var(--danger)]">{returnError}</p>}
     {children}
     <dialog ref={dialog} className="driver-end-dialog" aria-labelledby="driver-end-title" aria-describedby="driver-end-description" onClose={() => shiftButton.current?.focus()}>
-      <h2 id="driver-end-title">End your shift?</h2><p id="driver-end-description">Your bus will go off duty.</p><div><Button type="button" variant="secondary" autoFocus onClick={() => dialog.current?.close()}>Keep Working</Button><Button type="button" variant="danger" disabled={busy} onClick={confirmEnd}>End Shift</Button></div>
+      <h2 id="driver-end-title">{shiftActive ? "End your shift?" : "Start your shift?"}</h2><p id="driver-end-description">{shiftActive ? "Your bus will go off duty." : "Your assigned bus will go on duty. GPS sharing uses your location permission."}</p><div><Button type="button" variant="secondary" autoFocus onClick={() => dialog.current?.close()}>{shiftActive ? "Keep Working" : "Cancel"}</Button><Button type="button" variant={shiftActive ? "danger" : "primary"} disabled={busy} onClick={confirmShift}>{shiftActive ? "End Shift" : "Start Shift"}</Button></div>
     </dialog>
   </Card>;
 }
