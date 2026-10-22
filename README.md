@@ -222,7 +222,7 @@ Contributions, issues and feature requests are welcome!
 | Name | Role | GitHub |
 | --- | --- | --- |
 | **Hussnain ALI** | Backend Developer | [@hussnain-stack14](https://github.com/hussnain-stack14) |
-| **Syed Najaf Turab** | Frontend Developer | [@username](https://github.com/username) |
+| **Syed Najaf Turab** | Frontend Developer | SyedNajaf512(https://github.com/SyedNajaf512) |
 | **Muhammad Faisal** | Cloud engineer | [@Mr-M-Faisal](https://github.com/Mr-M-Faisal) |
 
 **Supervisor:** Miss Hina Zafar
